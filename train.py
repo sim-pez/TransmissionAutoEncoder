@@ -7,7 +7,7 @@ from tqdm import tqdm
 from datetime import datetime
 
 from model import Autoencoder
-from data_loader import ImageDataset
+from dataloader import ImageDataset
 
 if __name__ == "__main__":
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     else:
         device = torch.device("cpu")
         print("No GPU available, using the CPU instead.")
-        
+
     transform = transforms.Compose([
                     transforms.Resize((2048, 1024)),
                     transforms.ToTensor()
