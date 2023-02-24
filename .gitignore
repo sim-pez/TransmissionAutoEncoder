@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+.DS_Store
+.ipynb_checkpoints
+.conda
+sketches.ipynb
+MNIST
+rightImg8bit_trainvaltest
+rightImg8bit_trainextra
+gtFine_trainvaltest
+checkpoints
