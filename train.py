@@ -13,11 +13,14 @@ if __name__ == "__main__":
 
     num_epochs = 100
     dataset_path = '/Users/simone/Desktop/unit/autoencoder/rightImg8bit_trainvaltest/rightImg8bit/train'
+    load_from_checkpoint = True
 
     if torch.backends.mps.is_available():
         device = torch.device("mps")
+        print("Using Apple Silicon GPU")
     elif torch.cuda.is_available():
         device = torch.device("cuda")
+        print("Using GPU")
     else:
         device = torch.device("cpu")
         print("No GPU available, using the CPU instead.")
@@ -30,14 +33,26 @@ if __name__ == "__main__":
     dataloader = DataLoader(train_set, batch_size=4, shuffle=True)
 
     model = Autoencoder()
-    criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    criterion = nn.MSELoss()
 
-    checkpoint_dir = "checkpoints/" + str(datetime.now())
-    os.makedirs(checkpoint_dir, exist_ok=True)
+    if load_from_checkpoint:
+        checkpoint_path = open('checkpoints/last_ckpt.txt', "r").read()
+        checkpoint = torch.load(checkpoint_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        first_epoch = checkpoint['epoch']
+        checkpoint_dir = os.path.dirname(checkpoint_path)
+        print('Model loaded from checkpoint ' + checkpoint_path)
+    else:
+        checkpoint_dir = "checkpoints/" + str(datetime.now())
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        first_epoch = 0
+        print('Model initialized from scratch')
+
 
     # Train the autoencoder
-    for epoch in range(num_epochs):
+    for epoch in range(first_epoch, num_epochs):
         for data in tqdm(dataloader):
             img, _ = data
             # Forward pass
