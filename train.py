@@ -10,9 +10,8 @@ from model import Autoencoder
 from dataloader import ImageDataset
 
 num_epochs = 100
-dataset_path = '/Users/simone/Desktop/unit/autoencoder/rightImg8bit_trainvaltest/rightImg8bit/train'
+dataset_path = '/home/cr7036222/TransmissionAutoEncoder/rightImg8bit_trainvaltest'
 load_from_checkpoint = True
-
 
 def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
