@@ -9,11 +9,12 @@ from datetime import datetime
 from model import Autoencoder
 from dataloader import ImageDataset
 
-if __name__ == "__main__":
+num_epochs = 100
+dataset_path = '/Users/simone/Desktop/unit/autoencoder/rightImg8bit_trainvaltest/rightImg8bit/train'
+load_from_checkpoint = True
 
-    num_epochs = 100
-    dataset_path = '/Users/simone/Desktop/unit/autoencoder/rightImg8bit_trainvaltest/rightImg8bit/train'
-    load_from_checkpoint = True
+
+def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
     if torch.backends.mps.is_available():
         device = torch.device("mps")
@@ -64,7 +65,7 @@ if __name__ == "__main__":
             optimizer.step()
         print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
         #save model
-        checkpoint_path = os.path.join(checkpoint_dir, 'epoch{}.pth'.format(epoch+1))
+        checkpoint_path = os.path.join(checkpoint_dir, '[{}]_epoch{}.pth'.format(loss.item(), epoch+1))
         torch.save({
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
@@ -72,3 +73,7 @@ if __name__ == "__main__":
             }, checkpoint_path)
         with open ('checkpoints/last_ckpt.txt', "w") as f:
             f.write(checkpoint_path)
+
+if __name__ == "__main__":
+
+    train(num_epochs, dataset_path, load_from_checkpoint)
