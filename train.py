@@ -31,7 +31,7 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
                     transforms.ToTensor()
                     ])
     train_set = ImageDataset(dataset_path, transform=transform)
-    dataloader = DataLoader(train_set, batch_size=128, shuffle=True)
+    dataloader = DataLoader(train_set, batch_size=32, shuffle=True)
 
     model = Autoencoder(encoding_size)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
