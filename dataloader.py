@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 from utils import find_images
 
 class ImageDataset(Dataset):
+
     def __init__(self, dataset_folder, transform=None):
         self.dataset_folder = dataset_folder
         self.transform = transform
@@ -15,7 +16,7 @@ class ImageDataset(Dataset):
         image = Image.open(image_path).convert('RGB')
         if self.transform:
             image = self.transform(image)
-        return image, image
+        return image
 
     def __len__(self):
         return len(self.image_list)
