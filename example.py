@@ -3,6 +3,7 @@ from torchvision.transforms import ToTensor
 import os
 from PIL import Image
 from model import Autoencoder
+from datetime import datetime
 
 img_path = '/Users/simone/Desktop/unit/autoencoder/rightImg8bit_trainvaltest/rightImg8bit/test/berlin/berlin_000000_000019_rightImg8bit.png'
 checkpoint_path = None # "/Users/simone/Desktop/unit/autoencoder/checkpoints/2023-02-25 00:37:06.625761/epoch1.pth"
@@ -36,7 +37,7 @@ def example(img_path, checkpoint_path=None):
     reconstructed_image = Image.fromarray(reconstructed_image)
     
     os.makedirs("output", exist_ok=True)
-    reconstructed_image.save('output/{}'.format(os.path.basename(img_path)))
+    reconstructed_image.save('output/{}_{}'.format(str(datetime.now()), os.path.basename(img_path)))
     print('Image reconstruction complete.')
 
 if __name__ == "__main__":
