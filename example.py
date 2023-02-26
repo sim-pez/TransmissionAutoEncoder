@@ -5,7 +5,7 @@ from PIL import Image
 from model import Autoencoder
 from datetime import datetime
 
-img_path = '/Users/simone/Desktop/unit/autoencoder/rightImg8bit_trainvaltest/rightImg8bit/test/berlin/berlin_000000_000019_rightImg8bit.png'
+img_path = 'rightImg8bit_trainvaltest/rightImg8bit/test/berlin/berlin_000000_000019_rightImg8bit.png'
 checkpoint_path = None # "/Users/simone/Desktop/unit/autoencoder/checkpoints/2023-02-25 00:37:06.625761/epoch1.pth"
 
 

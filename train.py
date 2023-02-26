@@ -10,8 +10,9 @@ from model import Autoencoder
 from dataloader import ImageDataset
 
 num_epochs = 100
-dataset_path = '/home/cr7036222/TransmissionAutoEncoder/rightImg8bit_trainvaltest'
-load_from_checkpoint = True
+dataset_path = 'rightImg8bit_trainvaltest/rightImg8bit/train'
+load_from_checkpoint = False
+encoding_size = 128
 
 def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
@@ -30,9 +31,9 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
                     transforms.ToTensor()
                     ])
     train_set = ImageDataset(dataset_path, transform=transform)
-    dataloader = DataLoader(train_set, batch_size=4, shuffle=True)
+    dataloader = DataLoader(train_set, batch_size=128, shuffle=True)
 
-    model = Autoencoder()
+    model = Autoencoder(encoding_size)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.MSELoss()
 
