@@ -64,7 +64,7 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
             optimizer.step()
         print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
         #save model
-        checkpoint_path = os.path.join(checkpoint_dir, '[{}]_epoch{}.pth'.format(loss.item(), epoch+1))
+        checkpoint_path = os.path.join(checkpoint_dir, 'epoch{}_[loss:{}].pth'.format(epoch+1, loss.item()))
         torch.save({
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
