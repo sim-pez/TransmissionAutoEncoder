@@ -12,17 +12,17 @@ from dataloader import ImageDataset
 num_epochs = 100
 dataset_path = 'rightImg8bit_trainvaltest/rightImg8bit'
 load_from_checkpoint = False
-encoding_size = 128
+encoding_size = 1024
 
 def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
     if torch.backends.mps.is_available():
         device = torch.device("mps")
         print("Using Apple Silicon GPU")
-        batch_size = 8
+        batch_size = 4
     elif torch.cuda.is_available():
         device = torch.device("cuda")
-        batch_size = 4
+        batch_size = 32
         print("Using GPU")
     else:
         device = torch.device("cpu")
