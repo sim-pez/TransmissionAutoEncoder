@@ -22,7 +22,7 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         batch_size = 8
     elif torch.cuda.is_available():
         device = torch.device("cuda")
-        batch_size = 32
+        batch_size = 4
         print("Using GPU")
     else:
         device = torch.device("cpu")

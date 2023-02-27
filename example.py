@@ -5,9 +5,10 @@ from PIL import Image
 from model import Autoencoder
 from datetime import datetime
 
+from train import encoding_size
+
 img_path = 'rightImg8bit_trainvaltest/rightImg8bit/test/berlin/berlin_000000_000019_rightImg8bit.png'
 checkpoint_path = None # "/Users/simone/Desktop/unit/autoencoder/checkpoints/2023-02-25 00:37:06.625761/epoch1.pth"
-
 
 def example(img_path, checkpoint_path=None):
     '''
@@ -15,7 +16,7 @@ def example(img_path, checkpoint_path=None):
     If not checkpoint path is provided, the last checkpoint will be used.
     '''
 
-    model = Autoencoder()
+    model = Autoencoder(encoding_size)
 
     if not checkpoint_path:
         checkpoint_path = open('checkpoints/last_ckpt.txt', "r").read()
