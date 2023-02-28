@@ -41,7 +41,7 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         checkpoint_dir = os.path.dirname(checkpoint_path)
         print('Model loaded from checkpoint ' + checkpoint_path)
     else:
-        checkpoint_dir = "checkpoints/" + str(datetime.now())
+        checkpoint_dir = f"checkpoints/{str(datetime.now())} enc-{encoding_size}"
         os.makedirs(checkpoint_dir, exist_ok=True)
         first_epoch = 0
         print('Model initialized from scratch')
