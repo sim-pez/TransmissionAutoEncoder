@@ -45,6 +45,7 @@ def example(img_path, checkpoint_path=None):
     reconstructed_image = reconstructed_image.cpu()
     reconstructed_image = reconstructed_image.squeeze(0)
     img_name = 'output/{}_{}'.format(str(datetime.now()), os.path.basename(img_path))
+    os.makedirs('output', exist_ok=True)
     save_image(reconstructed_image, img_name)
     print(f"Done! saved {img_name}")
 
