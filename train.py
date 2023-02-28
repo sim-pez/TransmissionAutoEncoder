@@ -82,7 +82,7 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         avg_test_loss = test_loss/len(test_dataset)
 
         #save model
-        checkpoint_path = os.path.join(checkpoint_dir, 'epoch{}_[{:.6f},{:.6f}].pth'.format(epoch+1, avg_train_loss, avg_test_loss))
+        checkpoint_path = os.path.join(checkpoint_dir, 'epoch{}_[{:.6f},{:.6f}].pth'.format(epoch, avg_train_loss, avg_test_loss))
         torch.save({
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
