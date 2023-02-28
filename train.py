@@ -6,14 +6,17 @@ from torchvision import transforms
 from tqdm import tqdm
 from datetime import datetime
 
-
+from utils import find_device_and_batch_size
 from model import Autoencoder
 from dataloader import ImageDataset
 
+load_from_checkpoint = True
+force_cpu = True
 num_epochs = 100
-dataset_path = 'rightImg8bit_trainvaltest/rightImg8bit'
-load_from_checkpoint = False
 encoding_size = 1024
+
+dataset_path = 'rightImg8bit_trainvaltest/rightImg8bit'
+
 
 def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
@@ -43,7 +46,11 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         first_epoch = 0
         print('Model initialized from scratch')
 
-    #model.to(device)
+    if not force_cpu:
+        model.to(device)
+        print(f"Started training with {device}")
+    else:
+        print(f"Started training. Forcing cpu use")
 
     # Train the autoencoder
     for epoch in range(first_epoch, num_epochs):
@@ -52,7 +59,8 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
         for imgs in tqdm(train_loader):
             # Forward pass
-            #imgs = imgs.to(device)
+            if not force_cpu:
+                imgs = imgs.to(device)
             output = model(imgs)
             loss = criterion(output, imgs)
             # Backward pass

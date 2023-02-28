@@ -5,6 +5,8 @@ from PIL import Image
 from model import Autoencoder
 from datetime import datetime
 from torchvision.utils import save_image
+from torchvision import transforms
+
 
 from utils import find_device_and_batch_size
 from train import encoding_size
@@ -34,13 +36,17 @@ def example(img_path, checkpoint_path=None):
     
     image = Image.open(img_path).convert('RGB')
     image = transform(image)
+    image = image.unsqueeze(0) 
     #model.to(device)
     #image.to(device)
     with torch.no_grad():
         reconstructed_image = model(image)
 
     reconstructed_image = reconstructed_image.cpu()
-    save_image(reconstructed_image, 'output/{}_{}'.format(str(datetime.now()), os.path.basename(img_path)))
+    reconstructed_image = reconstructed_image.squeeze(0)
+    img_name = 'output/{}_{}'.format(str(datetime.now()), os.path.basename(img_path))
+    save_image(reconstructed_image, img_name)
+    print(f"Done! saved {img_name}")
 
 
 if __name__ == "__main__":
