@@ -6,6 +6,7 @@ from torchvision import transforms
 from tqdm import tqdm
 from datetime import datetime
 
+
 from model import Autoencoder
 from dataloader import ImageDataset
 
@@ -16,28 +17,12 @@ encoding_size = 1024
 
 def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
-    if torch.backends.mps.is_available():
-        device = torch.device("mps")
-        print("Using Apple Silicon GPU")
-        batch_size = 4
-    elif torch.cuda.is_available():
-        device = torch.device("cuda")
-        batch_size = 32
-        print("Using GPU")
-    else:
-        device = torch.device("cpu")
-        print("No GPU available, using the CPU instead.")
-        batch_size = 4
+    device, batch_size = find_device_and_batch_size()
 
-    transform = transforms.Compose([
-                    transforms.Resize((2048, 1024)),
-                    transforms.ToTensor()
-                    ])
-
-    train_dataset = ImageDataset(os.path.join(dataset_path, "train"), transform=transform)
+    train_dataset = ImageDataset(os.path.join(dataset_path, "train"))
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    test_dataset = ImageDataset(os.path.join(dataset_path, "test"), transform=transform)
+    test_dataset = ImageDataset(os.path.join(dataset_path, "test"))
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     model = Autoencoder(encoding_size)
@@ -58,16 +43,18 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         first_epoch = 0
         print('Model initialized from scratch')
 
+    #model.to(device)
 
     # Train the autoencoder
     for epoch in range(first_epoch, num_epochs):
         
         train_loss = 0.0
 
-        for img in tqdm(train_loader):
+        for imgs in tqdm(train_loader):
             # Forward pass
-            output = model(img)
-            loss = criterion(output, img)
+            #imgs = imgs.to(device)
+            output = model(imgs)
+            loss = criterion(output, imgs)
             # Backward pass
             optimizer.zero_grad()
             loss.backward()
@@ -79,9 +66,9 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         test_loss = 0.0
 
         with torch.no_grad():
-            for img in test_loader:
-                output = model(img)
-                loss = criterion(output, img)
+            for imgs in test_loader:
+                output = model(imgs)
+                loss = criterion(output, imgs)
                 test_loss += loss.item()
 
         avg_test_loss = test_loss/len(test_dataset)

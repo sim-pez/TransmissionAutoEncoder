@@ -12,3 +12,20 @@ def find_images(path):
                 relative_path = os.path.relpath(os.path.join(dirpath, filename), path)
                 images.append(relative_path)
     return images
+
+
+def find_device_and_batch_size():
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+        print("Using Apple Silicon GPU")
+        batch_size = 4
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+        batch_size = 32
+        print("Using GPU")
+    else:
+        device = torch.device("cpu")
+        print("No GPU available, using the CPU instead.")
+        batch_size = 4
+
+    return device, batch_size
