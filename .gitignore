@@ -1,6 +1,7 @@
 __pycache__/
 __MACOSX/
 output/
+old_ds/
 .DS_Store
 .ipynb_checkpoints
 .conda
