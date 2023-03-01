@@ -13,7 +13,7 @@ from dataloader import ImageDataset
 load_from_checkpoint = False
 force_cpu = False
 num_epochs = 100
-encoding_size = 1024
+encoding_size = 1024 * 2
 
 dataset_path = 'rightImg8bit_trainvaltest/rightImg8bit'
 
