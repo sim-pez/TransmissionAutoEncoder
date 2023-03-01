@@ -10,8 +10,8 @@ from utils import find_device_and_batch_size
 from model import Autoencoder
 from dataloader import ImageDataset
 
-load_from_checkpoint = True
-force_cpu = True
+load_from_checkpoint = False
+force_cpu = False
 num_epochs = 100
 encoding_size = 1024
 
@@ -41,7 +41,7 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         checkpoint_dir = os.path.dirname(checkpoint_path)
         print('Model loaded from checkpoint ' + checkpoint_path)
     else:
-        checkpoint_dir = f"checkpoints/{str(datetime.now())} enc-{encoding_size}"
+        checkpoint_dir = f"checkpoints/{str(datetime.now())} enc-{str(encoding_size)}"
         os.makedirs(checkpoint_dir, exist_ok=True)
         first_epoch = 0
         print('Model initialized from scratch')
