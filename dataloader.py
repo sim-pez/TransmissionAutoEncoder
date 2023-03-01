@@ -11,7 +11,7 @@ class ImageDataset(Dataset):
     def __init__(self, dataset_folder):
         self.dataset_folder = dataset_folder
         self.transform = transforms.Compose([
-                    transforms.Resize((1024, 2048)),
+                    transforms.Resize((256, 512)),
                     transforms.ToTensor()
                     ])
         self.image_list = find_images(dataset_folder)
