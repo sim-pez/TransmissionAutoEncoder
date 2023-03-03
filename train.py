@@ -9,35 +9,37 @@ from torchsummary import summary
 
 
 from utils import find_device_and_batch_size
-from model import Autoencoder
+from model import UNet
 from dataloader import ImageDataset
 
 load_from_checkpoint = False
 force_cpu = False
 num_epochs = 200
-encoding_size = 16 #4, 16 or 32
 
-dataset_path = 'rightImg8bit_trainvaltest/rightImg8bit'
+img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit'
+label_set_path = 'gtFine_trainvaltest/gtFine'
 
 
-def train(num_epochs, dataset_path, load_from_checkpoint=True):
+def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
 
     device, batch_size = find_device_and_batch_size()
 
-    train_dataset = ImageDataset(os.path.join(dataset_path, "train"))
+    train_dataset = ImageDataset(images_folder = os.path.join(img_set_path, "train"), 
+                                 labels_folder = os.path.join(label_set_path, "train"))
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    test_dataset = ImageDataset(os.path.join(dataset_path, "test"))
+    test_dataset = ImageDataset(images_folder = os.path.join(img_set_path, "test"),
+                                labels_folder= os.path.join(label_set_path, "test"))
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    model = Autoencoder(encoding_size)
+    model = UNet()
     if not force_cpu:
-        model.to(device)
+        #model.to(device)
         print(f"Training with {device}")
     else:
         print(f"Training forcing cpu use")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    criterion = nn.MSELoss()
+    criterion = nn.CrossEntropyLoss()
     
     #summary(model, (3, 512, 256), device="cpu") 
 
@@ -51,7 +53,7 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         checkpoint_dir = os.path.dirname(checkpoint_path)
         print('Model loaded from checkpoint ' + checkpoint_path)
     else:
-        checkpoint_dir = f"checkpoints/{str(datetime.now())} enc-{str(encoding_size)}"
+        checkpoint_dir = f"checkpoints/{str(datetime.now())} UNet"
         os.makedirs(checkpoint_dir, exist_ok=True)
         first_epoch = 0
         print('Model initialized from scratch')
@@ -62,11 +64,11 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         
         train_loss = 0.0
 
-        for imgs in tqdm(train_loader):
-            if not force_cpu:
-                imgs = imgs.to(device)
+        for imgs, labels in tqdm(train_loader):
+            #if not force_cpu:
+                #imgs = imgs.to(device)
             output = model(imgs)
-            loss = criterion(output, imgs)
+            loss = criterion(output, labels)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -100,4 +102,4 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
 if __name__ == "__main__":
 
-    train(num_epochs, dataset_path, load_from_checkpoint)
+    train(num_epochs, img_set_path, label_set_path, load_from_checkpoint)
