@@ -16,6 +16,9 @@ def find_images(path):
 
 
 def find_device_and_batch_size():
+    '''
+    Finds if a gpu is available and returns also batch size
+    '''
     if torch.backends.mps.is_available():
         device = torch.device("mps")
         batch_size = 4
@@ -27,3 +30,11 @@ def find_device_and_batch_size():
         batch_size = 4
 
     return device, batch_size
+
+
+def get_encoding_size(checkpoint_name):
+    '''
+    Get model encoding size from the checkpoint name
+    '''
+    encoding_size = checkpoint_name.split('/')[-2].split('-')[-1]
+    return int(encoding_size)

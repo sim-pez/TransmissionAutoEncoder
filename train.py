@@ -5,6 +5,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import tqdm
 from datetime import datetime
+from torchsummary import summary
+
 
 from utils import find_device_and_batch_size
 from model import Autoencoder
@@ -12,8 +14,8 @@ from dataloader import ImageDataset
 
 load_from_checkpoint = False
 force_cpu = False
-num_epochs = 100
-encoding_size = 1024 * 2
+num_epochs = 200
+encoding_size = 16 #4, 16 or 32
 
 dataset_path = 'rightImg8bit_trainvaltest/rightImg8bit'
 
@@ -29,8 +31,16 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     model = Autoencoder(encoding_size)
+    if not force_cpu:
+        model.to(device)
+        print(f"Training with {device}")
+    else:
+        print(f"Training forcing cpu use")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.MSELoss()
+    
+    #summary(model, (3, 512, 256), device="cpu") 
+
 
     if load_from_checkpoint:
         checkpoint_path = open('checkpoints/last_ckpt.txt', "r").read()
@@ -46,11 +56,6 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         first_epoch = 0
         print('Model initialized from scratch')
 
-    if not force_cpu:
-        model.to(device)
-        print(f"Started training with {device}")
-    else:
-        print(f"Started training. Forcing cpu use")
 
     # Train the autoencoder
     for epoch in range(first_epoch, num_epochs):
@@ -58,12 +63,10 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
         train_loss = 0.0
 
         for imgs in tqdm(train_loader):
-            # Forward pass
             if not force_cpu:
                 imgs = imgs.to(device)
             output = model(imgs)
             loss = criterion(output, imgs)
-            # Backward pass
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -75,6 +78,8 @@ def train(num_epochs, dataset_path, load_from_checkpoint=True):
 
         with torch.no_grad():
             for imgs in test_loader:
+                if not force_cpu:
+                    imgs = imgs.to(device)
                 output = model(imgs)
                 loss = criterion(output, imgs)
                 test_loss += loss.item()
