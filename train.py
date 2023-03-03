@@ -13,7 +13,7 @@ from model import UNet
 from dataloader import ImageDataset
 
 load_from_checkpoint = False
-force_cpu = False
+force_cpu = True
 num_epochs = 200
 
 img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit'
@@ -28,13 +28,13 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
                                  labels_folder = os.path.join(label_set_path, "train"))
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    test_dataset = ImageDataset(images_folder = os.path.join(img_set_path, "test"),
-                                labels_folder= os.path.join(label_set_path, "test"))
+    test_dataset = ImageDataset(images_folder = os.path.join(img_set_path, "val"),  # using validation set instead of test set
+                                labels_folder= os.path.join(label_set_path, "val")) # 
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     model = UNet()
     if not force_cpu:
-        #model.to(device)
+        model.to(device)
         print(f"Training with {device}")
     else:
         print(f"Training forcing cpu use")
@@ -65,8 +65,8 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
         train_loss = 0.0
 
         for imgs, labels in tqdm(train_loader):
-            #if not force_cpu:
-                #imgs = imgs.to(device)
+            if not force_cpu:
+                imgs = imgs.to(device)
             output = model(imgs)
             loss = criterion(output, labels)
             optimizer.zero_grad()
