@@ -2,7 +2,7 @@ import torch
 from torchvision.transforms import ToTensor
 import os
 from PIL import Image
-from model import Autoencoder
+from model import UNet
 from datetime import datetime
 from torchvision.utils import save_image
 from torchvision import transforms
@@ -22,30 +22,28 @@ def example(img_path, checkpoint_path=None):
         checkpoint_path = open('checkpoints/last_ckpt.txt', "r").read()
 
     device, batch_size = find_device_and_batch_size()
-    encoding_size = get_encoding_size(checkpoint_path)
-    
-    model = Autoencoder(encoding_size)
-    
-    checkpoint = torch.load(checkpoint_path)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    print('Model loaded from checkpoint ' + checkpoint_path)
-
     transform = transforms.Compose([
                     transforms.Resize((256, 512)),
                     transforms.ToTensor()
                     ])
     
+    model = UNet()
+    
+    checkpoint = torch.load(checkpoint_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    print('Model loaded from checkpoint ' + checkpoint_path)
+    
     image = Image.open(img_path).convert('RGB')
     image = transform(image)
     image = image.unsqueeze(0) 
     with torch.no_grad():
-        reconstructed_image = model(image)
+        segmentation = model(image)
 
-    reconstructed_image = reconstructed_image.cpu()
-    reconstructed_image = reconstructed_image.squeeze(0)
+    segmentation = segmentation.cpu()
+    segmentation = segmentation.squeeze(0)
     img_name = 'output/{}_{}'.format(str(datetime.now()), os.path.basename(img_path))
     os.makedirs('output', exist_ok=True)
-    save_image(reconstructed_image, img_name)
+    save_image(segmentation, img_name)
     print(f"Done! saved {img_name}")
 
 

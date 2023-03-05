@@ -39,7 +39,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
     else:
         print(f"Training forcing cpu use")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss() if model.out_channels > 1 else nn.BCEWithLogitsLoss()
     
     #summary(model, (3, 512, 256), device="cpu") 
 
@@ -62,8 +62,8 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
     # Train the autoencoder
     for epoch in range(first_epoch, num_epochs):
         
+        #train
         train_loss = 0.0
-
         for imgs, labels in tqdm(train_loader):
             if not force_cpu:
                 imgs = imgs.to(device)
@@ -76,18 +76,18 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
         
         avg_train_loss = train_loss/len(train_dataset)
 
+        #test
         test_loss = 0.0
-
         with torch.no_grad():
-            for imgs in test_loader:
+            for imgs, labels in test_loader:
                 if not force_cpu:
                     imgs = imgs.to(device)
                 output = model(imgs)
-                loss = criterion(output, imgs)
+                loss = criterion(output, labels)
                 test_loss += loss.item()
 
         avg_test_loss = test_loss/len(test_dataset)
-
+        
         #save model
         checkpoint_path = os.path.join(checkpoint_dir, 'epoch{}_[{:.6f},{:.6f}].pth'.format(epoch, avg_train_loss, avg_test_loss))
         torch.save({
