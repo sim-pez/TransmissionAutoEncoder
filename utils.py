@@ -117,7 +117,7 @@ def map_values_tensor(input_tensor):
     Returns a tensor with the mapped values
     '''
 
-    output = torch.zeros_like(input, dtype=torch.int64)
-    for value, class_ in value2class.items():
-        output = torch.where(input == value, torch.tensor(class_), output)
+    output = torch.zeros_like(input_tensor, dtype=torch.int64)
+    for value, label_class in value2class.items():
+        output = torch.where(input_tensor == value, torch.tensor(label_class), output)
     return output
