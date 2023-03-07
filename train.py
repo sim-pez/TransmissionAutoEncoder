@@ -3,17 +3,21 @@ import os
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from torchvision.datasets import Cityscapes
 from tqdm import tqdm
 from datetime import datetime
 from torchsummary import summary
+import torch.nn.functional as F
+
+import segmentation_models_pytorch as smp
+
 
 
 from utils import find_device_and_batch_size
-from model import UNet
 from dataloader import ImageDataset
 
 load_from_checkpoint = False
-force_cpu = True
+force_cpu = False
 num_epochs = 200
 
 img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit'
@@ -32,14 +36,19 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
                                 labels_folder= os.path.join(label_set_path, "val")) # 
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    model = UNet()
+    model = smp.Unet(encoder_name="resnet34",
+                     encoder_weights="imagenet", 
+                     classes=35, 
+                     activation='softmax')
+
     if not force_cpu:
         model.to(device)
         print(f"Training with {device}")
     else:
         print(f"Training forcing cpu use")
+
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    criterion = nn.CrossEntropyLoss() if model.out_channels > 1 else nn.BCEWithLogitsLoss()
+    criterion = torch.nn.CrossEntropyLoss()
     
     #summary(model, (3, 512, 256), device="cpu") 
 
@@ -67,6 +76,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
         for imgs, labels in tqdm(train_loader):
             if not force_cpu:
                 imgs = imgs.to(device)
+                labels = labels.to(device)
             output = model(imgs)
             loss = criterion(output, labels)
             optimizer.zero_grad()
@@ -82,6 +92,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
             for imgs, labels in test_loader:
                 if not force_cpu:
                     imgs = imgs.to(device)
+                    labels = labels.to(device)
                 output = model(imgs)
                 loss = criterion(output, labels)
                 test_loss += loss.item()
