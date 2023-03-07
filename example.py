@@ -2,11 +2,12 @@ import torch
 from torchvision.transforms import ToTensor
 import os
 from PIL import Image
-from model import UNet
+#from model import UNet
 from datetime import datetime
 from torchvision.utils import save_image
 from torchvision import transforms
 
+import segmentation_models_pytorch as smp
 
 from utils import find_device_and_batch_size, get_encoding_size
 
@@ -27,7 +28,7 @@ def example(img_path, checkpoint_path=None):
                     transforms.ToTensor()
                     ])
     
-    model = UNet()
+    model = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
     
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -39,8 +40,9 @@ def example(img_path, checkpoint_path=None):
     with torch.no_grad():
         segmentation = model(image)
 
-    segmentation = segmentation.cpu()
-    segmentation = segmentation.squeeze(0)
+    segmentation = torch.argmax(segmentation, dim=1).float()
+    segmentation /= segmentation.max(1, keepdim=True)[0]
+    
     img_name = 'output/{}_{}'.format(str(datetime.now()), os.path.basename(img_path))
     os.makedirs('output', exist_ok=True)
     save_image(segmentation, img_name)
