@@ -28,11 +28,7 @@ def example(img_path, checkpoint_path=None):
                     transforms.ToTensor()
                     ])
     
-    model = smp.Unet(encoder_name="resnet34",
-                     encoder_weights="imagenet", 
-                     classes=35, 
-                     activation='softmax')
-    #model = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
+    model = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
     
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model_state_dict'])
