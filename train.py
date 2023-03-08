@@ -17,7 +17,7 @@ from utils import find_device_and_batch_size
 from dataloader import ImageDataset
 
 load_from_checkpoint = False
-force_cpu = False
+force_cpu = True
 num_epochs = 200
 
 img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit'
@@ -36,10 +36,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
                                 labels_folder= os.path.join(label_set_path, "val")) # 
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    model = smp.Unet(encoder_name="resnet34",
-                     encoder_weights="imagenet", 
-                     classes=35, 
-                     activation='softmax')
+    model = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
 
     if not force_cpu:
         model.to(device)
