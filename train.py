@@ -9,16 +9,14 @@ from datetime import datetime
 from torchsummary import summary
 import torch.nn.functional as F
 
-import segmentation_models_pytorch as smp
-
-
-
+from model import SegmentationAutoencoder
 from utils import find_device_and_batch_size
 from dataloader import ImageDataset
 
 load_from_checkpoint = False
 force_cpu = True
 num_epochs = 200
+encoding_size = 16 #4, 16 or 32
 
 img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit'
 label_set_path = 'gtFine_trainvaltest/gtFine'
@@ -36,7 +34,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
                                 labels_folder= os.path.join(label_set_path, "val")) # 
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    model = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
+    model = SegmentationAutoencoder(encoding_size=encoding_size)
 
     if not force_cpu:
         model.to(device)
@@ -45,7 +43,9 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
         print(f"Training forcing cpu use")
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    criterion = torch.nn.CrossEntropyLoss()
+    segm_criterion1 = torch.nn.CrossEntropyLoss()
+    segm_criterion2 = torch.nn.CrossEntropyLoss()
+    img_criterion = torch.nn.MSELoss()
     
     #summary(model, (3, 512, 256), device="cpu") 
 
@@ -74,12 +74,17 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
             if not force_cpu:
                 imgs = imgs.to(device)
                 labels = labels.to(device)
-            output = model(imgs)
-            loss = criterion(output, labels)
+            output, segmentation1, segmentation2 = model(imgs)
+            loss_img = img_criterion(output, imgs)
+            loss_segm1 = segm_criterion1(segmentation1, labels)
+            loss_segm2 = segm_criterion2(segmentation2, labels)
+
+            total_loss = loss_img + loss_segm1 + loss_segm2 #TODO pesare 
+
             optimizer.zero_grad()
-            loss.backward()
+            total_loss.backward()
             optimizer.step()
-            train_loss += loss.item()
+            train_loss += total_loss.item()
         
         avg_train_loss = train_loss/len(train_dataset)
 
@@ -90,9 +95,12 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
                 if not force_cpu:
                     imgs = imgs.to(device)
                     labels = labels.to(device)
-                output = model(imgs)
-                loss = criterion(output, labels)
-                test_loss += loss.item()
+                output, segmentation1, segmentation2 = model(imgs)
+                loss_img = img_criterion(output, imgs)
+                loss_segm1 = segm_criterion1(segmentation1, labels)
+                loss_segm2 = segm_criterion2(segmentation2, labels)
+                total_loss = loss_img + loss_segm1 + loss_segm2
+                test_loss += total_loss.item()
 
         avg_test_loss = test_loss/len(test_dataset)
         
