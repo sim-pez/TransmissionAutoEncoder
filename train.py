@@ -1,13 +1,8 @@
 import torch
 import os
-from torch import nn
 from torch.utils.data import DataLoader
-from torchvision import transforms
-from torchvision.datasets import Cityscapes
 from tqdm import tqdm
 from datetime import datetime
-from torchsummary import summary
-import torch.nn.functional as F
 
 from model import SegmentationAutoencoder
 from utils import find_device_and_batch_size

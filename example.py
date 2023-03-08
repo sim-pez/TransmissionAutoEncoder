@@ -7,9 +7,9 @@ from datetime import datetime
 from torchvision.utils import save_image
 from torchvision import transforms
 
-import segmentation_models_pytorch as smp
+from model import SegmentationAutoencoder
+from train import encoding_size
 
-from utils import find_device_and_batch_size, get_encoding_size
 
 img_path = 'rightImg8bit_trainvaltest/rightImg8bit/test/berlin/berlin_000000_000019_rightImg8bit.png'
 checkpoint_path = None #'checkpoints/2023-03-03 14:34:01.408481 enc-32/epoch199_[0.000045,0.000087].pth'
@@ -22,17 +22,12 @@ def example(img_path, checkpoint_path=None):
     if not checkpoint_path:
         checkpoint_path = open('checkpoints/last_ckpt.txt', "r").read()
 
-    device, batch_size = find_device_and_batch_size()
     transform = transforms.Compose([
                     transforms.Resize((256, 512)),
                     transforms.ToTensor()
                     ])
     
-    model = smp.Unet(encoder_name="resnet34",
-                     encoder_weights="imagenet", 
-                     classes=35, 
-                     activation='softmax')
-    #model = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
+    model = SegmentationAutoencoder(encoding_size)
     
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model_state_dict'])
