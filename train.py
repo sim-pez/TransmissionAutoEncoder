@@ -12,6 +12,7 @@ load_from_checkpoint = False
 force_cpu = True
 num_epochs = 200
 encoding_size = 16 #4, 16 or 32
+l = 0.8 #image reconstruction loss
 
 img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit'
 label_set_path = 'gtFine_trainvaltest/gtFine'
@@ -74,7 +75,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
             loss_segm1 = segm_criterion1(segmentation1, labels)
             loss_segm2 = segm_criterion2(segmentation2, labels)
 
-            total_loss = loss_img + loss_segm1 + loss_segm2 #TODO pesare 
+            total_loss = l * loss_img + ((1 - l) / 2) *  loss_segm1 + ((1 - l) / 2) * loss_segm2
 
             optimizer.zero_grad()
             total_loss.backward()
