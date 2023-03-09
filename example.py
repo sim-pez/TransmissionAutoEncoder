@@ -37,15 +37,28 @@ def example(img_path, checkpoint_path=None):
     image = transform(image)
     image = image.unsqueeze(0) 
     with torch.no_grad():
-        segmentation = model(image)
+        reconstructed_img, segmentation1, segmentation2 = model(image)
 
-    segmentation = torch.argmax(segmentation, dim=1).float()
-    segmentation /= segmentation.max(1, keepdim=True)[0]
+    segmentation1 = torch.argmax(segmentation1, dim=1).float()
+    segmentation1 /= segmentation1.max(1, keepdim=True)[0]
+
+    segmentation2 = torch.argmax(segmentation2, dim=1).float()
+    segmentation2 /= segmentation2.max(1, keepdim=True)[0]
     
-    img_name = 'output/{}_{}'.format(str(datetime.now()), os.path.basename(img_path))
+    img_name = 'output/{}_img_{}'.format(str(datetime.now()), os.path.basename(img_path))
     os.makedirs('output', exist_ok=True)
-    save_image(segmentation, img_name)
-    print(f"Done! saved {img_name}")
+    save_image(reconstructed_img, img_name)
+
+    seg1_name = 'output/{}_seg1_{}'.format(str(datetime.now()), os.path.basename(img_path))
+    os.makedirs('output', exist_ok=True)
+    save_image(segmentation1, seg1_name)
+
+    seg2_name = 'output/{}_seg2_{}'.format(str(datetime.now()), os.path.basename(img_path))
+    os.makedirs('output', exist_ok=True)
+    save_image(segmentation2, seg2_name)
+
+
+    print(f"Done!")
 
 
 if __name__ == "__main__":
