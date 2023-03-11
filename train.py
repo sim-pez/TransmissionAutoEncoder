@@ -1,3 +1,9 @@
+'''
+Script to train the autoencoder and/or the segmentation network. 
+It will generate a folder with the checkpoints if it doesn't exist.
+Elsewhere, it will load the latest checkpoint and continue training from there.
+'''
+
 import torch
 import os
 from torch.utils.data import DataLoader
@@ -5,20 +11,22 @@ from tqdm import tqdm
 from datetime import datetime
 
 from model import SegmentationAutoencoder
-from utils import find_device_and_batch_size
+from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_checkpoint
 from dataloader import ImageDataset
-
-load_from_checkpoint = True
-force_cpu = False
-num_epochs = 200
-encoding_size = 4 #4, 16 or 32
-l = 0.8 #image reconstruction loss
-
-img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit'
-label_set_path = 'gtFine_trainvaltest/gtFine'
+import warnings
 
 
-def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
+encoding_size = 4   # 4, 16 or 32
+l = 0.8             # image reconstruction rate
+mode = 'complete'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
+num_epochs = 200    # number of epochs to train
+force_cpu = False   # force cpu use
+
+img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit' # path to the folder containing the images
+label_set_path = 'gtFine_trainvaltest/gtFine'           # path to the folder containing the segmentation labels
+
+
+def train(img_set_path, label_set_path, encoding_size, l, mode, force_cpu=False):
 
     torch.cuda.empty_cache()
     device, batch_size = find_device_and_batch_size()
@@ -31,7 +39,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
                                 labels_folder= os.path.join(label_set_path, "val")) # 
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    model = SegmentationAutoencoder(encoding_size=encoding_size)
+    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size, l=l)
 
     if not force_cpu:
         model.to(device)
@@ -46,23 +54,21 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
     
     #summary(model, (3, 512, 256), device="cpu") 
 
-
-    if load_from_checkpoint:
-        checkpoint_path = open('checkpoints/last_ckpt.txt', "r").read()
+    checkpoint_dir = get_checkpoint_dir(mode, encoding_size, l)
+    if os.path.exists(checkpoint_dir):
+        checkpoint_path = get_last_checkpoint()
         checkpoint = torch.load(checkpoint_path)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         first_epoch = checkpoint['epoch']
-        checkpoint_dir = os.path.dirname(checkpoint_path)
-        print('Model loaded from checkpoint ' + checkpoint_path)
+        print('Checkpoint found. Model loaded from last one.')
     else:
-        checkpoint_dir = f"checkpoints/{str(datetime.now())} Mixed"
         os.makedirs(checkpoint_dir, exist_ok=True)
         first_epoch = 0
-        print('Model initialized from scratch')
+        print('Checkpoint not found. Model initialized from scratch')
 
 
-    # Train the autoencoder
+    # Training loop
     for epoch in range(first_epoch, num_epochs):
         
         #train
@@ -72,11 +78,18 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
                 imgs = imgs.to(device)
                 labels = labels.to(device)
             output, segmentation1, segmentation2 = model(imgs)
-            loss_img = img_criterion(output, imgs)
-            loss_segm1 = segm_criterion1(segmentation1, labels)
-            loss_segm2 = segm_criterion2(segmentation2, labels)
 
-            total_loss = l * loss_img + ((1 - l) / 2) *  loss_segm1 + ((1 - l) / 2) * loss_segm2
+            if mode == 'complete':
+                loss_img = img_criterion(output, imgs)
+                loss_segm1 = segm_criterion1(segmentation1, labels)
+                loss_segm2 = segm_criterion2(segmentation2, labels)
+                total_loss = l * loss_img + ((1 - l) / 2) *  loss_segm1 + ((1 - l) / 2) * loss_segm2
+            elif mode == 'segmentation_only':
+                loss_segm1 = segm_criterion1(segmentation1, labels)
+                total_loss = loss_segm1
+            elif mode == 'autoencoder_only':
+                loss_img = img_criterion(output, imgs)
+                total_loss = loss_img
 
             optimizer.zero_grad()
             total_loss.backward()
@@ -84,6 +97,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
             train_loss += total_loss.item()
         
         avg_train_loss = train_loss/len(train_dataset)
+
 
         #test
         test_loss = 0.0
@@ -93,26 +107,38 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
                     imgs = imgs.to(device)
                     labels = labels.to(device)
                 output, segmentation1, segmentation2 = model(imgs)
-                loss_img = img_criterion(output, imgs)
-                loss_segm1 = segm_criterion1(segmentation1, labels)
-                loss_segm2 = segm_criterion2(segmentation2, labels)
-                total_loss = loss_img + loss_segm1 + loss_segm2
+
+                if mode == 'complete':
+                    loss_img = img_criterion(output, imgs)
+                    loss_segm1 = segm_criterion1(segmentation1, labels)
+                    loss_segm2 = segm_criterion2(segmentation2, labels)
+                    total_loss = l * loss_img + ((1 - l) / 2) *  loss_segm1 + ((1 - l) / 2) * loss_segm2
+                elif mode == 'segmentation_only':
+                    loss_segm1 = segm_criterion1(segmentation1, labels)
+                    total_loss = loss_segm1
+                elif mode == 'autoencoder_only':
+                    loss_img = img_criterion(output, imgs)
+                    total_loss = loss_img
+                    
                 test_loss += total_loss.item()
 
         avg_test_loss = test_loss/len(test_dataset)
         
+
         #save model
-        checkpoint_path = os.path.join(checkpoint_dir, 'epoch{}_[{:.6f},{:.6f}].pth'.format(epoch, avg_train_loss, avg_test_loss))
+        checkpoint_path = os.path.join(checkpoint_dir, 'epoch:[{}]  test:[{:.5f}]  train:[{:.5f}].pth'.format(epoch, avg_train_loss, avg_test_loss))
         torch.save({
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'epoch': epoch
-            }, checkpoint_path)
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'epoch': epoch
+                    }, checkpoint_path)
         with open ('checkpoints/last_ckpt.txt', "w") as f:
             f.write(checkpoint_path)
 
-        print('Epoch [{}/{}], Loss on train set: {:.6f}, Loss on test set: {:.6f}'.format(epoch+1, num_epochs, avg_train_loss, avg_test_loss))
+        print('Epoch [{}/{}], Loss on train set: {:.5f}, Loss on test set: {:.5f}'.format(epoch, num_epochs, avg_train_loss, avg_test_loss))
+
 
 if __name__ == "__main__":
 
-    train(num_epochs, img_set_path, label_set_path, load_from_checkpoint)
+    warnings.filterwarnings('ignore')
+    train(img_set_path, label_set_path, encoding_size, l, mode, force_cpu)
