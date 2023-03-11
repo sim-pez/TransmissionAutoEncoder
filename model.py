@@ -5,7 +5,7 @@ import segmentation_models_pytorch as smp
 
 
 class SegmentationAutoencoder(nn.Module):
-    def __init__(self, mode='complete', encoding_size=None, l=None):
+    def __init__(self, mode='complete', encoding_size=None, r=None):
         super(SegmentationAutoencoder, self).__init__()
 
         #check parameters
@@ -16,8 +16,8 @@ class SegmentationAutoencoder(nn.Module):
             if encoding_size is None:
                 raise ValueError("Encoding size must be specified for complete mode")
         if mode == 'complete':
-            if l is None:
-                raise ValueError("l must be specified for complete mode")
+            if r is None:
+                raise ValueError("r must be specified for complete mode")
         
         if mode == 'autoencoder_only' or mode == 'complete':
             self.encoder = nn.Sequential( 

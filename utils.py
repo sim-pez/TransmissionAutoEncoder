@@ -107,8 +107,9 @@ def get_last_checkpoint(checkpoint_dir):
     '''
     Get last checkpoint from the checkpoint directory
     '''
-    pattern = 'epoch:[*.pth'
-    file_paths = glob.glob(os.path.join(checkpoint_dir, pattern))
-    file_paths.sort(key=os.path.getmtime, reverse=True)
-    last_checkpoint_path = file_paths[0]
+    file_paths = os.listdir(checkpoint_dir)
+    file_paths.sort(reverse=True)
+    last_checkpoint_name = file_paths[0]
+    last_checkpoint_path = os.path.join(checkpoint_dir, last_checkpoint_name)
+
     return last_checkpoint_path
