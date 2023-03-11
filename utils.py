@@ -24,7 +24,7 @@ def find_device_and_batch_size():
         batch_size = 4
     elif torch.cuda.is_available():
         device = torch.device("cuda")
-        batch_size = 32
+        batch_size = 8
     else:
         device = torch.device("cpu")
         batch_size = 4

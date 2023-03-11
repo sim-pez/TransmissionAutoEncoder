@@ -8,10 +8,10 @@ from model import SegmentationAutoencoder
 from utils import find_device_and_batch_size
 from dataloader import ImageDataset
 
-load_from_checkpoint = False
-force_cpu = True
+load_from_checkpoint = True
+force_cpu = False
 num_epochs = 200
-encoding_size = 16 #4, 16 or 32
+encoding_size = 4 #4, 16 or 32
 l = 0.8 #image reconstruction loss
 
 img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit'
@@ -20,6 +20,7 @@ label_set_path = 'gtFine_trainvaltest/gtFine'
 
 def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
 
+    torch.cuda.empty_cache()
     device, batch_size = find_device_and_batch_size()
 
     train_dataset = ImageDataset(images_folder = os.path.join(img_set_path, "train"), 
@@ -55,7 +56,7 @@ def train(num_epochs, img_set_path, label_set_path, load_from_checkpoint=True):
         checkpoint_dir = os.path.dirname(checkpoint_path)
         print('Model loaded from checkpoint ' + checkpoint_path)
     else:
-        checkpoint_dir = f"checkpoints/{str(datetime.now())} UNet"
+        checkpoint_dir = f"checkpoints/{str(datetime.now())} Mixed"
         os.makedirs(checkpoint_dir, exist_ok=True)
         first_epoch = 0
         print('Model initialized from scratch')
