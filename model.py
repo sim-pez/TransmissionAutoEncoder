@@ -5,16 +5,21 @@ import segmentation_models_pytorch as smp
 
 
 class SegmentationAutoencoder(nn.Module):
-    def __init__(self, encoding_size, mode = 'complete'):
+    def __init__(self, mode='complete', encoding_size=None, l=None):
         super(SegmentationAutoencoder, self).__init__()
 
+        #check parameters
         mode_types = ['complete', 'segmentation_only', 'autoencoder_only']
         if mode not in mode_types:
             raise ValueError("Invalid mode type. Expected one of: %s" % mode_types)
-
-        self.mode = mode
-
-        if mode != 'segmentation_only'
+        if mode == 'complete' or mode == 'autoencoder_only':
+            if encoding_size is None:
+                raise ValueError("Encoding size must be specified for complete mode")
+        if mode == 'complete':
+            if l is None:
+                raise ValueError("l must be specified for complete mode")
+        
+        if mode == 'autoencoder_only' or mode == 'complete':
             self.encoder = nn.Sequential( 
                 nn.Conv2d(38, 64, kernel_size=3, padding=1),
                 nn.ReLU(),
@@ -35,10 +40,13 @@ class SegmentationAutoencoder(nn.Module):
                 nn.Sigmoid()
             )
         
-        if mode != 'autoencoder_only'
+        if mode == 'segmentation_only' or mode == 'complete':
             self.segmentator1 = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
-        if mode == 'complete'
+        if mode == 'complete':
             self.segmentator2 = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
+
+        self.mode = mode
+
 
     def forward(self, x):
         if self.mode == 'complete':
@@ -49,13 +57,14 @@ class SegmentationAutoencoder(nn.Module):
             segmentation2 = self.segmentator2(x)
             return x, segmentation1, segmentation2
 
-        elif self.mode == 'autoencoder_only'
+        elif self.mode == 'autoencoder_only':
             x = self.encoder(x)
             x = self.decoder(x)
-            return x
+            return x, None, None
         
-        elif self.mode == 'segmentation_only'
-            x = self.segmentator1(x)
+        elif self.mode == 'segmentation_only':
+            segmentation = self.segmentator1(x)
+            return None, segmentation, None
         
         else:
             raise ValueError("Something went wrong with mode types!")

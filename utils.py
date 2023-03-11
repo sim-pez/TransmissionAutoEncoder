@@ -1,5 +1,6 @@
 import os
 import torch
+import glob
 
 def find_images(path):
     '''
@@ -39,42 +40,6 @@ def get_encoding_size(checkpoint_name):
     encoding_size = checkpoint_name.split('/')[-2].split('-')[-1]
     return int(encoding_size)
 
-#value mapper
-class2value = { 0 : 0.003921568859368563,
-                1 : 0.007843137718737125,
-                2 : 0.0117647061124444,
-                3 : 0.01568627543747425,
-                4 : 0.019607843831181526,
-                5 : 0.0235294122248888,
-                6 : 0.027450980618596077,
-                7 : 0.0313725508749485,
-                8 : 0.03529411926865578,
-                9 : 0.03921568766236305,
-                10 : 0.04313725605607033,
-                11 : 0.0470588244497776,
-                12 : 0.05098039284348488,
-                13 : 0.054901961237192154,
-                14 : 0.05882352963089943,
-                15 : 0.062745101749897,
-                16 : 0.06666667014360428,
-                17 : 0.07058823853731155,
-                18 : 0.07450980693101883,
-                19 : 0.0784313753247261,
-                20 : 0.08235294371843338,
-                21 : 0.08627451211214066,
-                22 : 0.09019608050584793,
-                23 : 0.0941176488995552,
-                24 : 0.09803921729326248,
-                25 : 0.10196078568696976,
-                26 : 0.10588235408067703,
-                27 : 0.10980392247438431,
-                28 : 0.11372549086809158,
-                29 : 0.11764705926179886,
-                30 : 0.12156862765550613,
-                31 : 0.125490203499794,
-                32 : 0.12941177189350128,
-                33 : 0.13333334028720856,
-                34 : 0.13725490868091583}
 
 value2class = { 0.003921568859368563  : 0, 
                 0.007843137718737125  : 1, 
@@ -112,6 +77,7 @@ value2class = { 0.003921568859368563  : 0,
                 0.13333334028720856  : 33,
                 0.13725490868091583  : 34}
 
+
 def map_values_tensor(input_tensor):
     '''
     Returns a tensor with the mapped values
@@ -121,3 +87,28 @@ def map_values_tensor(input_tensor):
     for value, label_class in value2class.items():
         output = torch.where(input_tensor == value, torch.tensor(label_class), output)
     return output
+
+def get_checkpoint_dir(mode, encoding_size=None, l=None):
+    '''
+    Get checkpoint directory from the checkpoint name
+    '''
+    if mode == 'complete':
+        checkpoint_dir = f"checkpoints/mode:[{mode}]  enc:[{encoding_size}]  l:[{l}]"
+    elif mode == 'autoencoder_only':
+        checkpoint_dir = f"checkpoints/mode:[{mode}]  enc:[{encoding_size}]"
+    elif mode == 'segmentation_only':
+        checkpoint_dir = f"checkpoints/mode:[{mode}]"
+    else:
+        raise ValueError("Invalid mode")
+    return checkpoint_dir
+
+
+def get_last_checkpoint(checkpoint_dir):
+    '''
+    Get last checkpoint from the checkpoint directory
+    '''
+    pattern = 'epoch:[*.pth'
+    file_paths = glob.glob(os.path.join(checkpoint_dir, pattern))
+    file_paths.sort(key=os.path.getmtime, reverse=True)
+    last_checkpoint_path = file_paths[0]
+    return last_checkpoint_path
