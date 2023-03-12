@@ -12,16 +12,19 @@ class SegmentationAutoencoder(nn.Module):
         mode_types = ['complete', 'segmentation_only', 'autoencoder_only']
         if mode not in mode_types:
             raise ValueError("Invalid mode type. Expected one of: %s" % mode_types)
-        if mode == 'complete' or mode == 'autoencoder_only':
+        if mode == 'autoencoder_only':
             if encoding_size is None:
                 raise ValueError("Encoding size must be specified for complete mode")
+            encoder_channels = 3
         if mode == 'complete':
-            if r is None:
+            if r is None or encoding_size is None:
                 raise ValueError("r must be specified for complete mode")
+            encoder_channels = 38
+        
         
         if mode == 'autoencoder_only' or mode == 'complete':
             self.encoder = nn.Sequential( 
-                nn.Conv2d(38, 64, kernel_size=3, padding=1),
+                nn.Conv2d(encoder_channels, 64, kernel_size=3, padding=1),
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size=2, stride=2),
                 nn.Conv2d(64, 32, kernel_size=3, padding=1),

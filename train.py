@@ -14,7 +14,7 @@ from model import SegmentationAutoencoder
 from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_checkpoint
 
 
-encoding_size = 4   # 4, 16 or 32
+encoding_size = 4   # 4, 8, 16 or 32
 r = 0.8             # image reconstruction rate
 mode = 'segmentation_only'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
 lr = 0.005 #0.001
@@ -141,8 +141,3 @@ if __name__ == "__main__":
     warnings.filterwarnings('ignore')
 
     train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
-
-
-
-
-
