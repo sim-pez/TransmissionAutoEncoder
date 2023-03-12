@@ -3,17 +3,15 @@ Script to train the autoencoder and/or the segmentation network.
 It will generate a folder with the checkpoints if it doesn't exist.
 Elsewhere, it will load the latest checkpoint and continue training from there.
 '''
-
-import torch
 import os
-from torch.utils.data import DataLoader
+import warnings
 from tqdm import tqdm
-from datetime import datetime
+import torch
+from torch.utils.data import DataLoader
 
+from dataloader import ImageDataset
 from model import SegmentationAutoencoder
 from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_checkpoint
-from dataloader import ImageDataset
-import warnings
 
 
 encoding_size = 4   # 4, 16 or 32
@@ -141,6 +139,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
 if __name__ == "__main__":
 
     warnings.filterwarnings('ignore')
+
     train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
 
 

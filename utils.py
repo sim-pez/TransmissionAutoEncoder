@@ -1,6 +1,7 @@
 import os
 import torch
-import glob
+import re
+
 
 def find_images(path):
     '''
@@ -88,6 +89,7 @@ def map_values_tensor(input_tensor):
         output = torch.where(input_tensor == value, torch.tensor(label_class), output)
     return output
 
+
 def get_checkpoint_dir(mode, encoding_size=None, l=None):
     '''
     Get checkpoint directory from the checkpoint name
@@ -113,3 +115,17 @@ def get_last_checkpoint(checkpoint_dir):
     last_checkpoint_path = os.path.join(checkpoint_dir, last_checkpoint_name)
 
     return last_checkpoint_path
+
+
+def get_parameters_from_checkpoint(checkpoint_path):
+    '''
+    Get parameters from the checkpoint name
+    '''
+    mode = re.findall(r'mode:\[(\w+)\]', checkpoint_path)[0]
+    encoding_size, l = None, None
+    if mode == 'autoencoder_only' or mode == 'complete':
+        encoding_size = int(re.findall(r'enc:\[(\d+)\]', checkpoint_path)[0])
+    if mode == 'complete':
+        r = int(re.findall(r'r:\[(\d\.\d+)\]', checkpoint_path)[0])
+
+    return mode, encoding_size, l

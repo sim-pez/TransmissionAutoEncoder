@@ -1,20 +1,16 @@
-import torch
-from torchvision.transforms import ToTensor
 import os
+import torch
+import warnings
 from PIL import Image
-#from model import UNet
-from datetime import datetime
 from torchvision.utils import save_image
 from torchvision import transforms
-import warnings
-import re
 
 from model import SegmentationAutoencoder
-from train import encoding_size
+from utils import get_parameters_from_checkpoint
 
 
 img_path = 'rightImg8bit_trainvaltest/rightImg8bit/test/berlin/berlin_000000_000019_rightImg8bit.png'
-checkpoint_path = None #'checkpoints/mode:[complete]  enc:[4]  l:[0.8]/epoch199_[0.000045,0.000087].pth'
+checkpoint_path = 'checkpoints/mode:[segmentation_only]/epoch:[145]  test:[0.68225]  train:[4.05984].pth'
 
 def example(img_path, checkpoint_path):
     '''
@@ -22,17 +18,17 @@ def example(img_path, checkpoint_path):
     If not checkpoint path is provided, the last checkpoint will be used.
     '''
 
-    #load model
 
-    mode = re.search(r'mode:\[(\w+)\]', checkpoint_path)
-    encoding_size = int(re.search(r'enc:\[(\d+)\]', checkpoint_path))
-    l = int(re.search(r'l:\[(\d\.\d+)\]', checkpoint_path))
+    #load model
 
     transform = transforms.Compose([
                     transforms.Resize((256, 512)),
                     transforms.ToTensor()
                     ])
-    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size, l=l)
+
+    mode, encoding_size, r = get_parameters_from_checkpoint(checkpoint_path)
+
+    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size)
     
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -63,12 +59,14 @@ def example(img_path, checkpoint_path):
     end_index = checkpoint_path.find('/', start_index)
     filename = checkpoint_path[start_index:end_index]
 
+
+
     if mode == 'autoencoder_only' or mode == 'complete':
-        save_image(reconstructed_img, f'output/{filename}_img')
+        save_image(reconstructed_img, f'output/{filename}_img.png')
     if mode == 'segmentation_only' or mode == 'complete':
-        save_image(segmentation1, f'output/{filename}_seg1')
+        save_image(segmentation1, f'output/{filename}_seg1.png')
     if mode == 'complete':
-        save_image(segmentation2, f'output/{filename}_seg2')
+        save_image(segmentation2, f'output/{filename}_seg2.png')
 
 
     print(f"Done!")
