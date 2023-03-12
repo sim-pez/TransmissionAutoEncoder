@@ -26,7 +26,7 @@ def example(img_path, checkpoint_path):
 
     mode = re.search(r'mode:\[(\w+)\]', checkpoint_path)
     encoding_size = int(re.search(r'enc:\[(\d+)\]', checkpoint_path))
-    l = int(re.search(r'l:\[(\d\.\d+)\]', checkpoint_path))
+    r = int(re.search(r'r:\[(\d\.\d+)\]', checkpoint_path))
 
     transform = transforms.Compose([
                     transforms.Resize((256, 512)),
