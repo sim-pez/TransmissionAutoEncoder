@@ -95,7 +95,7 @@ def get_checkpoint_dir(mode, encoding_size=None, l=None):
     Get checkpoint directory from the checkpoint name
     '''
     if mode == 'complete':
-        checkpoint_dir = f"checkpoints/mode:[{mode}]  enc:[{encoding_size}]  l:[{l}]"
+        checkpoint_dir = f"checkpoints/mode:[{mode}]  enc:[{encoding_size}]  r:[{l}]"
     elif mode == 'autoencoder_only':
         checkpoint_dir = f"checkpoints/mode:[{mode}]  enc:[{encoding_size}]"
     elif mode == 'segmentation_only':

@@ -20,20 +20,17 @@ def example(img_path, checkpoint_path):
 
 
     #load model
-
     transform = transforms.Compose([
                     transforms.Resize((256, 512)),
                     transforms.ToTensor()
                     ])
-
-    mode, encoding_size, r = get_parameters_from_checkpoint(checkpoint_path)
-
+    mode, encoding_size, _ = get_parameters_from_checkpoint(checkpoint_path)
     model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size)
-    
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model_state_dict'])
     print('Model loaded from checkpoint ' + checkpoint_path)
     
+
     #load image
     image = Image.open(img_path).convert('RGB')
     image = transform(image)
@@ -47,7 +44,6 @@ def example(img_path, checkpoint_path):
     if mode == 'segmentation_only' or mode == 'complete':
         segmentation1 = torch.argmax(segmentation1, dim=1).float()
         segmentation1 /= segmentation1.max(1, keepdim=True)[0]
-
     if mode == 'complete':
         segmentation2 = torch.argmax(segmentation2, dim=1).float()
         segmentation2 /= segmentation2.max(1, keepdim=True)[0]
@@ -58,8 +54,6 @@ def example(img_path, checkpoint_path):
     start_index = checkpoint_path.find('/') + 1
     end_index = checkpoint_path.find('/', start_index)
     filename = checkpoint_path[start_index:end_index]
-
-
 
     if mode == 'autoencoder_only' or mode == 'complete':
         save_image(reconstructed_img, f'output/{filename}_img.png')
