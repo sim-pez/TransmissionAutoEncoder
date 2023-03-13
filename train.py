@@ -125,7 +125,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
         
 
         #save model
-        checkpoint_path = os.path.join(checkpoint_dir, 'epoch:[{}]  test:[{:.5f}]  train:[{:.5f}].pth'.format(epoch, avg_train_loss, avg_test_loss))
+        checkpoint_path = os.path.join(checkpoint_dir, 'epoch:[{}]  test:[{:.5f}]  train:[{:.5f}].pth'.format(str(epoch).zfill(3), avg_train_loss, avg_test_loss))
         torch.save({
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
