@@ -10,7 +10,7 @@ from utils import get_parameters_from_checkpoint
 
 
 img_path = 'rightImg8bit_trainvaltest/rightImg8bit/test/berlin/berlin_000000_000019_rightImg8bit.png'
-checkpoint_path = 'checkpoints/mode:[autoencoder_only]  enc:[8]/epoch:[100]  test:[0.00029]  train:[0.00170].pth'
+checkpoint_path = 'checkpoints/mode:[segmentation_only]/epoch:[145]  test:[0.68225]  train:[4.05984].pth'
 
 def example(img_path, checkpoint_path):
     '''
@@ -24,8 +24,8 @@ def example(img_path, checkpoint_path):
                     transforms.Resize((256, 512)),
                     transforms.ToTensor()
                     ])
-    mode, encoding_size, _ = get_parameters_from_checkpoint(checkpoint_path)
-    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size)
+    mode, encoding_size, r = get_parameters_from_checkpoint(checkpoint_path)
+    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size, r=r)
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     model.load_state_dict(checkpoint['model_state_dict'])
     print('Model loaded from checkpoint ' + checkpoint_path)
