@@ -40,7 +40,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
                                 labels_folder= os.path.join(label_set_path, "val")) # 
     test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size, r=r)
+    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size)
 
     if not force_cpu:
         model.to(device)

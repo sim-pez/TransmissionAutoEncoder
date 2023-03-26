@@ -5,7 +5,7 @@ import segmentation_models_pytorch as smp
 
 
 class SegmentationAutoencoder(nn.Module):
-    def __init__(self, mode='complete', encoding_size=None, r=None):
+    def __init__(self, mode='complete', encoding_size=None):
         super(SegmentationAutoencoder, self).__init__()
 
 
@@ -14,14 +14,14 @@ class SegmentationAutoencoder(nn.Module):
         mode_types = ['complete', 'segmentation_only', 'autoencoder_only']
         if mode not in mode_types:
             raise ValueError("Invalid mode type. Expected one of: %s" % mode_types)
-        if mode == 'autoencoder_only':
+        elif mode == 'autoencoder_only':
+            concatenation_channels = 3
             if encoding_size is None:
                 raise ValueError("Encoding size must be specified for complete mode")
-            concatenation_channels = 3
-        if mode == 'complete':
-            if r is None or encoding_size is None:
-                raise ValueError("r must be specified for complete mode")
+        elif mode == 'complete':
             concatenation_channels = 35 + 3
+            if encoding_size is None:
+                raise ValueError("Encoding size must be specified for complete mode")
         
         
         if mode == 'autoencoder_only' or mode == 'complete':
