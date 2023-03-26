@@ -110,6 +110,8 @@ def get_last_checkpoint(checkpoint_dir):
     Get last checkpoint from the checkpoint directory
     '''
     file_paths = os.listdir(checkpoint_dir)
+    if not file_paths:
+        return None
     file_paths.sort(reverse=True)
     last_checkpoint_name = file_paths[0]
     last_checkpoint_path = os.path.join(checkpoint_dir, last_checkpoint_name)

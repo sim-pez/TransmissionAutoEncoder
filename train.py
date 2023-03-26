@@ -19,7 +19,7 @@ from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_check
 encoding_size = 8   # 4, 8, 16 or 32
 r = 0.8             # image reconstruction rate
 mode = 'complete'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
-lr = 0.05 #0.001
+lr = 0.05
 num_epochs = 200    # number of epochs to train
 force_cpu = False   # force cpu use
 
@@ -52,23 +52,29 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
     segm_criterion1 = torch.nn.CrossEntropyLoss()
     segm_criterion2 = torch.nn.CrossEntropyLoss()
     img_criterion = torch.nn.MSELoss()
-    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=30)
+    #scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=30)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+
 
     #summary(model, (3, 512, 256), device="cpu") 
 
     checkpoint_dir = get_checkpoint_dir(mode, encoding_size, r)
     if os.path.exists(checkpoint_dir):
         checkpoint_path = get_last_checkpoint(checkpoint_dir)
-        checkpoint = torch.load(checkpoint_path)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        scheduler.load_state_dict(checkpoint['scheduler'])
-        first_epoch = checkpoint['epoch'] + 1
-        print('Checkpoint found. Model loaded from last one.')
+        if checkpoint_path:
+            checkpoint = torch.load(checkpoint_path)
+            model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            scheduler.load_state_dict(checkpoint['scheduler'])
+            first_epoch = checkpoint['epoch'] + 1
+            print('Checkpoint found. Model loaded from last one.')
+        else:
+            first_epoch = 0
+            print('No valid checkpoint found. Model initialized from scratch.')
     else:
         os.makedirs(checkpoint_dir, exist_ok=True)
         first_epoch = 0
-        print('Checkpoint not found. Model initialized from scratch')
+        print('Checkpoint directory not found. Model initialized from scratch.')
 
 
     # Training loop
@@ -100,8 +106,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
             train_loss += total_loss.item()
         
         avg_train_loss = train_loss/len(train_dataset)
-
-        scheduler.step()
+        #scheduler.step()
 
 
         # test
@@ -139,7 +144,6 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
                     'epoch': epoch,
                     'scheduler': scheduler.state_dict()
                     }, checkpoint_path)
-
 
         print('Epoch [{}/{}] end. Loss on train set: {:.5f}, Loss on test set: {:.5f}, lr: {:.10f}'.format(epoch, num_epochs, avg_train_loss, avg_test_loss, optimizer.param_groups[0]["lr"]))
 
