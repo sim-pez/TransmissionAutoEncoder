@@ -62,6 +62,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
         checkpoint = torch.load(checkpoint_path)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        scheduler.load_state_dict(checkpoint['scheduler'])
         first_epoch = checkpoint['epoch'] + 1
         print('Checkpoint found. Model loaded from last one.')
     else:
@@ -135,7 +136,8 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
         torch.save({
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
-                    'epoch': epoch
+                    'epoch': epoch,
+                    'scheduler': scheduler.state_dict()
                     }, checkpoint_path)
 
 
