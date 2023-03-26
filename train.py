@@ -14,9 +14,9 @@ from model import SegmentationAutoencoder
 from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_checkpoint
 
 
-encoding_size = 4   # 4, 8, 16 or 32
+encoding_size = 2   # 4, 8, 16 or 32
 r = 0.8             # image reconstruction rate
-mode = 'segmentation_only'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
+mode = 'complete'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
 lr = 0.005 #0.001
 num_epochs = 200    # number of epochs to train
 force_cpu = False   # force cpu use

@@ -8,23 +8,25 @@ class SegmentationAutoencoder(nn.Module):
     def __init__(self, mode='complete', encoding_size=None, r=None):
         super(SegmentationAutoencoder, self).__init__()
 
+
         #check parameters
+        self.mode = mode
         mode_types = ['complete', 'segmentation_only', 'autoencoder_only']
         if mode not in mode_types:
             raise ValueError("Invalid mode type. Expected one of: %s" % mode_types)
         if mode == 'autoencoder_only':
             if encoding_size is None:
                 raise ValueError("Encoding size must be specified for complete mode")
-            encoder_channels = 3
+            concatenation_channels = 3
         if mode == 'complete':
             if r is None or encoding_size is None:
                 raise ValueError("r must be specified for complete mode")
-            encoder_channels = 38
+            concatenation_channels = 35 + 3
         
         
         if mode == 'autoencoder_only' or mode == 'complete':
             self.encoder = nn.Sequential( 
-                nn.Conv2d(encoder_channels, 64, kernel_size=3, padding=1),
+                nn.Conv2d(concatenation_channels, 64, kernel_size=3, padding=1),
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size=2, stride=2),
                 nn.Conv2d(64, 32, kernel_size=3, padding=1),
@@ -39,25 +41,23 @@ class SegmentationAutoencoder(nn.Module):
                 nn.ReLU(),
                 nn.ConvTranspose2d(32, 64, kernel_size=2, stride=2),
                 nn.ReLU(),
-                nn.ConvTranspose2d(64, 3, kernel_size=2, stride=2),
+                nn.ConvTranspose2d(64, concatenation_channels, kernel_size=2, stride=2),
                 nn.Sigmoid()
             )
         
         if mode == 'segmentation_only' or mode == 'complete':
-            self.segmentator1 = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
-        if mode == 'complete':
-            self.segmentator2 = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
+            self.segmentator = smp.Unet('efficientnet-b0', classes=35, activation='softmax')
 
-        self.mode = mode
+
 
 
     def forward(self, x):
         if self.mode == 'complete':
-            segmentation1 = self.segmentator1(x)
+            segmentation1 = self.segmentator(x)
             x = torch.cat((x, segmentation1), dim=1)
             x = self.encoder(x)
             x = self.decoder(x)
-            segmentation2 = self.segmentator2(x)
+            x, segmentation2 = torch.split(x, [3, 35], dim=1)
             return x, segmentation1, segmentation2
 
         elif self.mode == 'autoencoder_only':
@@ -66,7 +66,7 @@ class SegmentationAutoencoder(nn.Module):
             return x, None, None
         
         elif self.mode == 'segmentation_only':
-            segmentation = self.segmentator1(x)
+            segmentation = self.segmentator(x)
             return None, segmentation, None
         
         else:
