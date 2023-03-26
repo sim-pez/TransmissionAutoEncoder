@@ -19,7 +19,7 @@ from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_check
 encoding_size = 8   # 4, 8, 16 or 32
 r = 0.8             # image reconstruction rate
 mode = 'complete'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
-lr = 0.05
+lr = 0.02
 num_epochs = 200    # number of epochs to train
 force_cpu = False   # force cpu use
 
@@ -52,8 +52,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
     segm_criterion1 = torch.nn.CrossEntropyLoss()
     segm_criterion2 = torch.nn.CrossEntropyLoss()
     img_criterion = torch.nn.MSELoss()
-    #scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=30)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.01, total_iters=30)
 
 
     #summary(model, (3, 512, 256), device="cpu") 
@@ -105,8 +104,9 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
             optimizer.step()
             train_loss += total_loss.item()
         
+        scheduler.step()
+
         avg_train_loss = train_loss/len(train_dataset)
-        #scheduler.step()
 
 
         # test
@@ -131,7 +131,6 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
                     total_loss = loss_img
                     
                 test_loss += total_loss.item()
-
 
         avg_test_loss = test_loss/len(test_dataset)
         
