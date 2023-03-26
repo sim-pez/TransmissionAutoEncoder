@@ -19,7 +19,7 @@ from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_check
 encoding_size = 8   # 4, 8, 16 or 32
 r = 0.8             # image reconstruction rate
 mode = 'complete'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
-lr = 0.02
+lr = 0.05
 num_epochs = 200    # number of epochs to train
 force_cpu = False   # force cpu use
 
@@ -52,7 +52,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
     segm_criterion1 = torch.nn.CrossEntropyLoss()
     segm_criterion2 = torch.nn.CrossEntropyLoss()
     img_criterion = torch.nn.MSELoss()
-    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.01, total_iters=30)
+    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=num_epochs)
 
 
     #summary(model, (3, 512, 256), device="cpu") 
@@ -152,6 +152,4 @@ if __name__ == "__main__":
     warnings.filterwarnings('ignore')
 
 
-    encoding_size = 8
-    mode = 'complete'
     train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
