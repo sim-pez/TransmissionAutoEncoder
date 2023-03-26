@@ -140,4 +140,7 @@ if __name__ == "__main__":
 
     warnings.filterwarnings('ignore')
 
+
+    encoding_size = 8
+    mode = 'autoencoder_only'
     train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
