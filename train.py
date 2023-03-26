@@ -8,16 +8,18 @@ import warnings
 from tqdm import tqdm
 import torch
 from torch.utils.data import DataLoader
+import torch.optim.lr_scheduler as lr_scheduler
+
 
 from dataloader import ImageDataset
 from model import SegmentationAutoencoder
 from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_checkpoint
 
 
-encoding_size = 2   # 4, 8, 16 or 32
+encoding_size = 8   # 4, 8, 16 or 32
 r = 0.8             # image reconstruction rate
 mode = 'complete'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
-lr = 0.005 #0.001
+lr = 0.05 #0.001
 num_epochs = 200    # number of epochs to train
 force_cpu = False   # force cpu use
 
@@ -50,7 +52,8 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
     segm_criterion1 = torch.nn.CrossEntropyLoss()
     segm_criterion2 = torch.nn.CrossEntropyLoss()
     img_criterion = torch.nn.MSELoss()
-    
+    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=30)
+
     #summary(model, (3, 512, 256), device="cpu") 
 
     checkpoint_dir = get_checkpoint_dir(mode, encoding_size, r)
@@ -97,8 +100,10 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
         
         avg_train_loss = train_loss/len(train_dataset)
 
+        scheduler.step()
 
-        #test
+
+        # test
         test_loss = 0.0
         with torch.no_grad():
             for imgs, labels in test_loader:
@@ -121,6 +126,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
                     
                 test_loss += total_loss.item()
 
+
         avg_test_loss = test_loss/len(test_dataset)
         
 
@@ -133,7 +139,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
                     }, checkpoint_path)
 
 
-        print('Epoch [{}/{}] end. Loss on train set: {:.5f}, Loss on test set: {:.5f}'.format(epoch, num_epochs, avg_train_loss, avg_test_loss))
+        print('Epoch [{}/{}] end. Loss on train set: {:.5f}, Loss on test set: {:.5f}, lr: {:.10f}'.format(epoch, num_epochs, avg_train_loss, avg_test_loss, optimizer.param_groups[0]["lr"]))
 
 
 if __name__ == "__main__":
@@ -142,5 +148,5 @@ if __name__ == "__main__":
 
 
     encoding_size = 8
-    mode = 'autoencoder_only'
+    mode = 'complete'
     train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
