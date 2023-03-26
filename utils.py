@@ -122,10 +122,10 @@ def get_parameters_from_checkpoint(checkpoint_path):
     Get parameters from the checkpoint name
     '''
     mode = re.findall(r'mode:\[(\w+)\]', checkpoint_path)[0]
-    encoding_size, l = None, None
+    encoding_size, r = None, None
     if mode == 'autoencoder_only' or mode == 'complete':
         encoding_size = int(re.findall(r'enc:\[(\d+)\]', checkpoint_path)[0])
     if mode == 'complete':
-        l = int(re.findall(r'r:\[(\d\.\d+)\]', checkpoint_path)[0])
+        r = float(re.findall(r'r:\[(\d\.\d+)\]', checkpoint_path)[0])
 
-    return mode, encoding_size, l
+    return mode, encoding_size, r

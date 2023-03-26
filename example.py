@@ -24,9 +24,9 @@ def example(img_path, checkpoint_path):
                     transforms.Resize((256, 512)),
                     transforms.ToTensor()
                     ])
-    mode, encoding_size, _ = get_parameters_from_checkpoint(checkpoint_path)
-    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size)
-    checkpoint = torch.load(checkpoint_path)
+    mode, encoding_size, r = get_parameters_from_checkpoint(checkpoint_path)
+    model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size, r=r)
+    checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     model.load_state_dict(checkpoint['model_state_dict'])
     print('Model loaded from checkpoint ' + checkpoint_path)
     
