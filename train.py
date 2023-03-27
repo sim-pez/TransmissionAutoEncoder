@@ -52,7 +52,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
     segm_criterion1 = torch.nn.CrossEntropyLoss()
     segm_criterion2 = torch.nn.CrossEntropyLoss()
     img_criterion = torch.nn.MSELoss()
-    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=num_epochs)
+    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=1.0, total_iters=num_epochs)
 
     checkpoint_dir = get_checkpoint_dir(mode, encoding_size, r)
     if os.path.exists(checkpoint_dir):
@@ -148,5 +148,10 @@ if __name__ == "__main__":
 
     warnings.filterwarnings('ignore')
 
+    encoding_size = 8
+    mode = 'complete'
+    train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
 
+    encoding_size = 16
+    mode = 'complete'
     train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
