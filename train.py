@@ -54,9 +54,6 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
     img_criterion = torch.nn.MSELoss()
     scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=num_epochs)
 
-
-    #summary(model, (3, 512, 256), device="cpu") 
-
     checkpoint_dir = get_checkpoint_dir(mode, encoding_size, r)
     if os.path.exists(checkpoint_dir):
         checkpoint_path = get_last_checkpoint(checkpoint_dir)
