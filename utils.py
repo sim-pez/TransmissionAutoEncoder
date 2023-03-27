@@ -127,7 +127,5 @@ def get_parameters_from_checkpoint(checkpoint_path):
     encoding_size, r = None, None
     if mode == 'autoencoder_only' or mode == 'complete':
         encoding_size = int(re.findall(r'enc:\[(\d+)\]', checkpoint_path)[0])
-    if mode == 'complete':
-        r = float(re.findall(r'r:\[(\d\.\d+)\]', checkpoint_path)[0])
 
-    return mode, encoding_size, r
+    return mode, encoding_size
