@@ -4,15 +4,11 @@ This Neural Network is basically an autoencoder with a [U-Net](https://en.wikipe
 
 # Usage
 ## Install
-
-Run
 ```
 conda create --name autoenc --file requirements.txt
 ```
 
 ## Example script for an image
-
-Run
 ```
 python3 example.py
 ```
