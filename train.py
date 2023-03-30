@@ -12,15 +12,15 @@ import torch.optim.lr_scheduler as lr_scheduler
 
 
 from dataloader import ImageDataset
-from model import SegmentationAutoencoder
+from model_splitting import SegmentationAutoencoder
 from utils import find_device_and_batch_size, get_checkpoint_dir, get_last_checkpoint
 
 
 encoding_size = 8   # 4, 8, 16 or 32
 r = 0.8             # image reconstruction rate
 mode = 'complete'   # can be 'complete', 'segmentation_only', 'autoencoder_only'
-lr = 0.05
-num_epochs = 200    # number of epochs to train
+lr = 0.02
+num_epochs = 70    # number of epochs to train
 force_cpu = False   # force cpu use
 
 img_set_path = 'rightImg8bit_trainvaltest/rightImg8bit' # path to the folder containing the images
@@ -36,9 +36,9 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
                                  labels_folder = os.path.join(label_set_path, "train"))
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    test_dataset = ImageDataset(images_folder = os.path.join(img_set_path, "val"),  # using validation set instead of test set
-                                labels_folder= os.path.join(label_set_path, "val")) # 
-    test_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_dataset = ImageDataset(images_folder = os.path.join(img_set_path, "test"),  # using validation set instead of test set
+                                labels_folder= os.path.join(label_set_path, "test")) # 
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
     model = SegmentationAutoencoder(mode=mode, encoding_size=encoding_size)
 
@@ -52,7 +52,7 @@ def train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, 
     segm_criterion1 = torch.nn.CrossEntropyLoss()
     segm_criterion2 = torch.nn.CrossEntropyLoss()
     img_criterion = torch.nn.MSELoss()
-    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=1.0, total_iters=num_epochs)
+    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.5, total_iters=num_epochs)
 
     checkpoint_dir = get_checkpoint_dir(mode, encoding_size, r)
     if os.path.exists(checkpoint_dir):
@@ -153,5 +153,13 @@ if __name__ == "__main__":
     train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
 
     encoding_size = 16
+    mode = 'complete'
+    train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
+
+    encoding_size = 32
+    mode = 'complete'
+    train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
+
+    encoding_size = 64
     mode = 'complete'
     train(img_set_path, label_set_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
