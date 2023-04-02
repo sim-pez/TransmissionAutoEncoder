@@ -11,4 +11,4 @@ rightImg8bit_trainvaltest
 rightImg8bit_trainextra
 gtFine_trainvaltest
 checkpoints
-checkpoints(concatenated)
+checkpoints(concatenating)
