@@ -33,7 +33,6 @@ class Autoencoder(nn.Module):
             nn.ReLU(),
             nn.ConvTranspose2d(32, 64, kernel_size=2, stride=2),
             nn.ReLU(),
-            #nn.ConvTranspose2d(64, 20+3, kernel_size=2, stride=2),
             nn.ConvTranspose2d(64, concatenation_channels, kernel_size=2, stride=2),
             nn.Sigmoid()
         )
@@ -44,9 +43,11 @@ class Autoencoder(nn.Module):
         if self.mode == 'complete':
             x = self.encoder(x)
             x = self.decoder(x)
-            img, segmentation = torch.split(x, [3, 20], dim=1) # torch.split(x, [3, 35], dim=1)
+            img, segmentation = torch.split(x, [3, 20], dim=1)
             return img, segmentation
+            
         elif self.mode == 'image_only':
+            x, _ = torch.split(x, [3, 20], dim=1)
             x = self.encoder(x)
             x = self.decoder(x)
             return x, None

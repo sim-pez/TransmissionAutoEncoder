@@ -14,6 +14,7 @@ import torch.nn.functional as F
 from utils import utils
 import torch.utils.data as data
 from dataset.cityscapes import Cityscapes
+from dataloader import ImageDataset
 from model import Autoencoder
 
 from utils import find_device_and_batch_size
@@ -22,7 +23,7 @@ from utils.model_load_helpers import get_checkpoint_dir, get_last_checkpoint
 
 encoding_size = 32   # 4, 8, 16 or 32
 r = 0.8             # image reconstruction rate
-mode = 'complete'   # can be 'complete', 'image_only'
+mode = 'image_only'   # can be 'complete', 'image_only'
 lr = 0.02
 num_epochs = 70    # number of epochs to train
 force_cpu = False   # force cpu use
@@ -32,21 +33,20 @@ def train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu = Fals
 
     torch.cuda.empty_cache()
     device, batch_size = find_device_and_batch_size()
+    if force_cpu:
+        device = torch.device('cpu')
+        print(f"Forced CPU use")
+    print(f"Training with {device}")
 
 
-    train_dst = Cityscapes(root='dataset', segmentation_folder='resnet_seg_nocolor', split='train')
-    val_dst = Cityscapes(root='dataset', segmentation_folder='resnet_seg_nocolor', split='test')
+    train_dataset = ImageDataset(dataset_path=dataset_path, mode="train")
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2, drop_last=True)
 
-    train_loader = data.DataLoader(train_dst, batch_size=batch_size, shuffle=True, num_workers=2, drop_last=True)  # drop_last=True to ignore single-image batches.
-    val_loader = data.DataLoader(val_dst, batch_size=batch_size, shuffle=True, num_workers=2, drop_last=True)
+    test_dataset = ImageDataset(dataset_path=dataset_path, mode="test")
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=2, drop_last=True)
 
     model = Autoencoder(mode=mode, encoding_size=encoding_size)
-
-    if not force_cpu:
-        model.to(device)
-        print(f"Training with {device}")
-    else:
-        print(f"Training forcing cpu use")
+    model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     segm_criterion = torch.nn.CrossEntropyLoss(reduction='mean')
@@ -79,13 +79,10 @@ def train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu = Fals
         #train
         train_loss = 0.0
         for imgs, segm in tqdm(train_loader):
-            segm = F.one_hot(segm, num_classes=20).squeeze().permute(0,3,1,2).float()
-
-            imgs = imgs.to(device, dtype=torch.float32)
-            segm = segm.to(device, dtype=torch.float32)
+            imgs = imgs.to(device)#(device, dtype=torch.float32)
+            segm = segm.to(device)#(device, dtype=torch.float32)
             x = torch.cat((imgs, segm), dim=1)
             output_img, output_seg = model(x)
-
             if mode == 'complete':
                 loss_img = img_criterion(output_img, imgs)
                 loss_segm = segm_criterion(output_seg, segm)
@@ -100,17 +97,15 @@ def train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu = Fals
         
         scheduler.step()
 
-        avg_train_loss = train_loss/len(train_dst)
+        avg_train_loss = train_loss/len(train_dataset)
 
 
         # test
         test_loss = 0.0
         with torch.no_grad():
-            for imgs, segm in val_loader:
-                segm = F.one_hot(segm, num_classes=20).squeeze().permute(0,3,1,2).float()
-                if not force_cpu:
-                    imgs = imgs.to(device, dtype=torch.float32)
-                    segm = segm.to(device, dtype=torch.float32)
+            for imgs, segm in test_loader:
+                imgs = imgs.to(device)#(device, dtype=torch.float32)
+                segm = segm.to(device)#(device, dtype=torch.float32)
                 x = torch.cat((imgs, segm), dim=1)
                 output_img, output_seg = model(x)
 
@@ -119,11 +114,11 @@ def train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu = Fals
                     loss_segm = segm_criterion(output_seg, segm)
                     batch_loss = r * loss_img + (1 - r) * loss_segm
                 elif mode == 'image_only':
-                    batch_loss = img_criterion(output, imgs)
+                    batch_loss = img_criterion(output_img, imgs)
                     
                 test_loss += batch_loss.item()
 
-        avg_test_loss = test_loss/len(val_dst)
+        avg_test_loss = test_loss/len(test_dataset)
         
 
         #save model
@@ -143,16 +138,6 @@ if __name__ == "__main__":
     import torch
     from PIL import Image
     import torchvision.transforms as transforms
-
-    # image = Image.open('dataset/resnet_seg_nocolor/train/dusseldorf/dusseldorf_000078_000019_rightImg8bit.png')
-    # transform = transforms.Compose([
-    #     transforms.Resize((256, 512)),
-    #     transforms.PILToTensor(),
-    #     #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    # ])
-    # img_tensor = transform(image)
-    # print(img_tensor.unique())
-
 
     warnings.filterwarnings('ignore')
     dataset_path = 'dataset'
