@@ -1,6 +1,22 @@
 import os
 import torch
 import re
+import numpy as np
+import torch.nn as nn
+from torchvision.transforms.functional import normalize
+
+
+class Denormalize(object):
+    def __init__(self, mean, std):
+        mean = np.array(mean)
+        std = np.array(std)
+        self._mean = -mean/std
+        self._std = 1/std
+
+    def __call__(self, tensor):
+        if isinstance(tensor, np.ndarray):
+            return (tensor - self._mean.reshape(-1,1,1)) / self._std.reshape(-1,1,1)
+        return normalize(tensor, self._mean, self._std)
 
 
 def find_images(path):
@@ -88,44 +104,3 @@ def map_values_tensor(input_tensor):
     for value, label_class in value2class.items():
         output = torch.where(input_tensor == value, torch.tensor(label_class), output)
     return output
-
-
-def get_checkpoint_dir(mode, encoding_size=None, l=None):
-    '''
-    Get checkpoint directory from the checkpoint name
-    '''
-    if mode == 'complete':
-        checkpoint_dir = f"checkpoints/mode:[{mode}]  enc:[{encoding_size}]  r:[{l}]"
-    elif mode == 'autoencoder_only':
-        checkpoint_dir = f"checkpoints/mode:[{mode}]  enc:[{encoding_size}]"
-    elif mode == 'segmentation_only':
-        checkpoint_dir = f"checkpoints/mode:[{mode}]"
-    else:
-        raise ValueError("Invalid mode")
-    return checkpoint_dir
-
-
-def get_last_checkpoint(checkpoint_dir):
-    '''
-    Get last checkpoint from the checkpoint directory
-    '''
-    file_paths = os.listdir(checkpoint_dir)
-    if not file_paths:
-        return None
-    file_paths.sort(reverse=True)
-    last_checkpoint_name = file_paths[0]
-    last_checkpoint_path = os.path.join(checkpoint_dir, last_checkpoint_name)
-
-    return last_checkpoint_path
-
-
-def get_parameters_from_checkpoint(checkpoint_path):
-    '''
-    Get parameters from the checkpoint name
-    '''
-    mode = re.findall(r'mode:\[(\w+)\]', checkpoint_path)[0]
-    encoding_size, r = None, None
-    if mode == 'autoencoder_only' or mode == 'complete':
-        encoding_size = int(re.findall(r'enc:\[(\d+)\]', checkpoint_path)[0])
-
-    return mode, encoding_size

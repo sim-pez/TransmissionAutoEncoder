@@ -3,4 +3,3 @@ torchvision
 tqdm
 Pillow
 torchsummary
-segmentation_models_pytorch
