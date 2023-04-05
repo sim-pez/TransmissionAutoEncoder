@@ -22,10 +22,10 @@ from utils.model_load_helpers import get_checkpoint_dir, get_last_checkpoint
 
 
 encoding_size = 32   # 4, 8, 16 or 32
-r = 0.8             # image reconstruction rate
-mode = 'image_only'   # can be 'complete', 'image_only'
+r = 0.8         # image reconstruction rate
+mode = 'complete'   # can be 'complete', 'image_only'
 lr = 0.02
-num_epochs = 70    # number of epochs to train
+num_epochs = 200    # number of epochs to train
 force_cpu = False   # force cpu use
 
 
@@ -142,4 +142,8 @@ if __name__ == "__main__":
     warnings.filterwarnings('ignore')
     dataset_path = 'dataset'
 
+    encoding_size = 32
+    train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
+
+    encoding_size = 64
     train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)

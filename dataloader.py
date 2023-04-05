@@ -6,7 +6,7 @@ from utils import map_values_tensor
 import torch.nn.functional as F
 import torch
 
-from utils.utils import find_images, map_values_tensor
+from utils.utils import find_images, map_values_tensor, intmap
 
 
 
@@ -31,7 +31,6 @@ class ImageDataset(Dataset):
         label = Image.open(label_path)
         label = self.transform(label)
         label = map_values_tensor(label)
-
         label = F.one_hot(label, num_classes=20).permute(0,3,1,2).float().squeeze()
 
         return image, label

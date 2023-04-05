@@ -19,7 +19,7 @@ from dataloader import ImageDataset
 
 
 
-checkpoint_path = 'checkpoints/mode:[complete]  enc:[32]  r:[0.8]/epoch:[004]  test:[0.07138]  train:[0.07126].pth'
+checkpoint_path = 'checkpoints/mode:[complete]  enc:[32]  r:[0.8]/epoch:[001]  test:[0.05548]  train:[0.05500].pth'
 
 def example(dataset_path, checkpoint_path):
     '''
@@ -44,7 +44,6 @@ def example(dataset_path, checkpoint_path):
     start_index = checkpoint_path.find('/') + 1
     end_index = checkpoint_path.find('/', start_index)
     filename = checkpoint_path[start_index:end_index]
-    filename = 'zzz' #TODO delete
     os.makedirs(os.path.join('output' ,filename), exist_ok=True)
 
     with torch.no_grad():
@@ -59,9 +58,8 @@ def example(dataset_path, checkpoint_path):
 
             if mode == 'complete':
                 for j, seg in enumerate(output_segs):
-                    #seg = seg.max(1)[1].cpu().numpy()[0]
                     seg = torch.argmax(seg, dim=0).cpu().numpy()
-                    #seg = Cityscapes.decode_target(seg) #TODO decode target??
+                    seg = Cityscapes.decode_target(seg)
                     seg = Image.fromarray(seg.astype('uint8'))
                     seg.save(f'output/{filename}/{str(i*batch_size+j)}_seg.png')
 
