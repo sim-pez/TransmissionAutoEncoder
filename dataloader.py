@@ -10,12 +10,12 @@ from utils.utils import find_images, map_values_tensor, intmap
 
 
 
-
 class ImageDataset(Dataset):
 
-    def __init__(self, dataset_path, mode):
+    def __init__(self, dataset_path, mode, get_img_path=False):
         self.dataset_path = dataset_path
         self.mode = mode
+        self.get_img_path = get_img_path
         self.transform = transforms.Compose([transforms.Resize((256, 512)),
                                                  transforms.ToTensor()])
         self.images_folder = os.path.join(self.dataset_path, 'leftImg8bit', mode)
@@ -33,6 +33,8 @@ class ImageDataset(Dataset):
         label = map_values_tensor(label)
         label = F.one_hot(label, num_classes=20).permute(0,3,1,2).float().squeeze()
 
+        if self.get_img_path:
+            return image, label, self.image_list[idx]
         return image, label
 
 

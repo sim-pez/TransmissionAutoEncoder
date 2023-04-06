@@ -147,3 +147,9 @@ if __name__ == "__main__":
 
     encoding_size = 64
     train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
+
+    encoding_size = 8
+    train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
+
+    encoding_size = 16
+    train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
