@@ -79,8 +79,8 @@ def train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu = Fals
         #train
         train_loss = 0.0
         for imgs, segm in tqdm(train_loader):
-            imgs = imgs.to(device)#(device, dtype=torch.float32)
-            segm = segm.to(device)#(device, dtype=torch.float32)
+            imgs = imgs.to(device)
+            segm = segm.to(device)
             x = torch.cat((imgs, segm), dim=1)
             output_img, output_seg = model(x)
             if mode == 'complete':
