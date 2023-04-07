@@ -13,10 +13,6 @@ from utils.utils import find_device_and_batch_size
 from utils.model_load_helpers import get_parameters_from_checkpoint
 
 
-
-checkpoint_path = 'checkpoints/mode:[complete]  enc:[32]  r:[0.8]/epoch:[199]  test:[0.05272]  train:[0.05247].pth'
-
-
 def get_argparser():
 
     parser = argparse.ArgumentParser()
