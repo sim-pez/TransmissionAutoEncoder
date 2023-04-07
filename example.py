@@ -1,25 +1,33 @@
 import os
 import torch
-import warnings
+import argparse
 from PIL import Image
-from torchvision.utils import save_image
-from torchvision import transforms as T
-import torch.nn.functional as F
 from tqdm import tqdm
-from torch.utils import data
+from torchvision.utils import save_image
 from torch.utils.data import DataLoader
 
-
-from utils.utils import Denormalize
 from model import Autoencoder
-from dataset.cityscapes import Cityscapes
-from utils.model_load_helpers import get_parameters_from_checkpoint
-from utils.utils import find_device_and_batch_size
 from dataloader import ImageDataset
+from dataset.cityscapes import Cityscapes
+from utils.utils import find_device_and_batch_size
+from utils.model_load_helpers import get_parameters_from_checkpoint
 
 
 
 checkpoint_path = 'checkpoints/mode:[complete]  enc:[32]  r:[0.8]/epoch:[199]  test:[0.05272]  train:[0.05247].pth'
+
+
+def get_argparser():
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--dataset", type=str, default='dataset',
+                        help="Path to the dataset directory. If not specified, it will use the 'dataset' folder")
+    parser.add_argument("--checkpoin_path", type=str, default='checkpoints/mode:[complete]  enc:[32]  r:[0.8]/epoch:[199]  test:[0.05272]  train:[0.05247].pth',
+                        help='Model relative path')
+
+    return parser
+
 
 def example(dataset_path, checkpoint_path):
     '''
@@ -74,7 +82,6 @@ def example(dataset_path, checkpoint_path):
 
 if __name__ == "__main__":
 
-    warnings.filterwarnings('ignore')
-    dataset_path = 'dataset'
-
-    example(dataset_path, checkpoint_path=checkpoint_path)
+    opts = get_argparser().parse_args()
+    
+    example(opts.dataset, opts.checkpoint_path)
