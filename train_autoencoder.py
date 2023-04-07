@@ -4,16 +4,13 @@ It will generate a folder with the checkpoints if it doesn't exist.
 Elsewhere, it will load the latest checkpoint and continue training from there.
 '''
 import os
-import warnings
-from tqdm import tqdm
 import torch
+import warnings
+import argparse
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch.optim.lr_scheduler as lr_scheduler
-import torch.nn.functional as F
 
-from utils import utils
-import torch.utils.data as data
-from dataset.cityscapes import Cityscapes
 from dataloader import ImageDataset
 from model import Autoencoder
 
@@ -21,21 +18,27 @@ from utils import find_device_and_batch_size
 from utils.model_load_helpers import get_checkpoint_dir, get_last_checkpoint
 
 
-encoding_size = 32   # 4, 8, 16 or 32
-r = 0.8         # image reconstruction rate
-mode = 'complete'   # can be 'complete', 'image_only'
-lr = 0.02
-num_epochs = 200    # number of epochs to train
-force_cpu = False   # force cpu use
+
+def get_argparser():
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--dataset", type=str, default='dataset',
+                        help="Path to the dataset directory. If not specified, it will use the 'dataset' folder")
+    parser.add_argument("--model", type=str, default='complete',
+                        choices=['complete', 'image_only'], help='Model type')
+    parser.add_argument("--lr", type=float, required=False, default=0.02, help='learning rate')
+    parser.add_argument("--r", type=float, required=False, default=0.8, help="Image reconstruction rate")
+    parser.add_argument("--c", type=int, required=False, default=32, help='Encoding channels. Bigger value has lower compression rate')
+    parser.add_argument("--epochs", type=int, required=False, default=100, help='Number of epochs to train')
+
+    return parser
 
 
-def train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu = False):
+def train(dataset_path, encoding_size, r, mode, lr, num_epochs):
 
     torch.cuda.empty_cache()
     device, batch_size = find_device_and_batch_size()
-    if force_cpu:
-        device = torch.device('cpu')
-        print(f"Forced CPU use")
     print(f"Training with {device}")
 
 
@@ -104,8 +107,8 @@ def train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu = Fals
         test_loss = 0.0
         with torch.no_grad():
             for imgs, segm in test_loader:
-                imgs = imgs.to(device)#(device, dtype=torch.float32)
-                segm = segm.to(device)#(device, dtype=torch.float32)
+                imgs = imgs.to(device)
+                segm = segm.to(device)
                 x = torch.cat((imgs, segm), dim=1)
                 output_img, output_seg = model(x)
 
@@ -132,24 +135,9 @@ def train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu = Fals
 
         print('Epoch [{}/{}] end. Loss on train set: {:.5f}, Loss on test set: {:.5f}, lr: {:.10f}'.format(epoch, num_epochs, avg_train_loss, avg_test_loss, optimizer.param_groups[0]["lr"]))
 
+    print('Ended training')
 
 if __name__ == "__main__":
 
-    import torch
-    from PIL import Image
-    import torchvision.transforms as transforms
-
-    warnings.filterwarnings('ignore')
-    dataset_path = 'dataset'
-
-    encoding_size = 32
-    train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
-
-    encoding_size = 64
-    train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
-
-    encoding_size = 8
-    train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
-
-    encoding_size = 16
-    train(dataset_path, encoding_size, r, mode, lr, num_epochs, force_cpu)
+    opts = get_argparser().parse_args()
+    train(opts.dataset, opts.c, opts.r, opts.model, opts.lr, opts.epochs)

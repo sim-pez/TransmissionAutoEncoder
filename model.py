@@ -14,7 +14,7 @@ class Autoencoder(nn.Module):
         elif mode == 'image_only':
             concatenation_channels = 3
         elif mode == 'complete':
-            concatenation_channels = 3 + 20 #4
+            concatenation_channels = 3 + 20
         
         
         self.encoder = nn.Sequential( 
