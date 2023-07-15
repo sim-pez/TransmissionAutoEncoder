@@ -1,6 +1,11 @@
 # TransmissionAutoEncoder
 
-This Neural Network is basically an autoencoder with a [U-Net](https://en.wikipedia.org/wiki/U-Net). The objective is to send through a mobile network the embedding of the image itself and its segmentation. There is also a parameter to choose the size of embeddings to simulate the network bottleneck
+This architecture is composed by a ResNet followed from an Autoencoder. The objective is to compress both information and send through a mobile network the embedding of the image itself and its segmentation. There is also a parameter to choose the size of embeddings to simulate the network bottleneck
+
+<p float="left" align="center">
+  <img src="docs/architecture.png" width="100%"  />
+</p>
+
 
 # Usage
 ## Install
