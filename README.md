@@ -1,6 +1,6 @@
 # TransmissionAutoEncoder
 
-This architecture is composed by a ResNet followed from an Autoencoder. The objective is to compress both information and send through a mobile network the embedding of the image itself and its segmentation. There is also a parameter to choose the size of embeddings to simulate the network bottleneck
+This architecture consists of a ResNet followed by an Autoencoder. The goal is to compress both the image and its segmentation and transmit the resulting embeddings in the latent space through a mobile network. Additionally, there is a parameter that allows for selecting the size of the embeddings, which simulates a bottleneck in the network
 
 <p float="left" align="center">
   <img src="docs/architecture.png" width="100%"  />
